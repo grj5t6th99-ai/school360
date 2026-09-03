@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>School360 Qatar</title>
+<style>
+:root{
+  --maroon:#7A1F32; --maroon-d:#5C1524; --maroon-t:#F4E6E9;
+  --ink:#1E2430; --ink-2:#4B5563; --ink-3:#8A93A2;
+  --base:#F1F3F6; --panel:#FFFFFF; --line:#DFE3E9;
+  --sand:#B8955A; --sand-t:#F6F0E4;
+  --ok:#1F8A4C; --ok-t:#E3F3E9; --warn:#C77A0E; --warn-t:#FBEFD9; --bad:#B42323; --bad-t:#F9E1E1; --info:#1F5FA8; --info-t:#E3ECF7;
+  --r:6px;
+  font-family:"IBM Plex Sans","IBM Plex Sans Arabic","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--base);color:var(--ink);font-size:14px;line-height:1.45}
+[dir=rtl]{font-family:"IBM Plex Sans Arabic","Noto Sans Arabic","Segoe UI",system-ui,sans-serif}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+h1{font-size:22px}h2{font-size:16px}h3{font-size:14px}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+/* rail */
+.rail{background:var(--maroon-d);color:#fff;padding:18px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 6px 16px;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:8px}
+.brand .mark{width:34px;height:34px;border-radius:8px;background:var(--sand);color:var(--maroon-d);font-weight:700;display:grid;place-items:center;font-size:15px}
+.brand b{display:block;font-size:15px}.brand small{opacity:.7;font-size:11px}
+.role-lbl{font-size:11px;opacity:.6;padding:6px 8px 2px}
+.nav{background:none;border:0;color:#fff;text-align:start;padding:9px 10px;border-radius:var(--r);display:flex;gap:10px;align-items:center;opacity:.78}
+.nav:hover{background:rgba(255,255,255,.08);opacity:1}
+.nav.on{background:rgba(255,255,255,.14);opacity:1;font-weight:600}
+.nav .ic{width:20px;text-align:center}
+.rail .spacer{flex:1}
+.lang{display:flex;background:rgba(0,0,0,.25);border-radius:var(--r);padding:3px}
+.lang button{flex:1;border:0;background:none;color:#fff;padding:6px;border-radius:4px;opacity:.7}
+.lang button.on{background:#fff;color:var(--maroon-d);opacity:1;font-weight:600}
+/* main */
+.main{padding:22px 28px 60px;max-width:1180px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.top .sub{color:var(--ink-2);margin-top:3px}
+.roles{display:flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:3px}
+.roles button{border:0;background:none;padding:7px 12px;border-radius:5px;color:var(--ink-2)}
+.roles button.on{background:var(--maroon);color:#fff}
+/* panels */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.panel h2{margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}.app{grid-template-columns:1fr}.rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap}.rail .spacer{display:none}}
+/* status board */
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;position:relative}
+.tile:hover{border-color:var(--maroon)}
+.tile.wide{grid-column:span 2}
+.tile .k{font-size:12px;color:var(--ink-2)}
+.tile .v{font-size:26px;font-weight:600;margin-top:2px;letter-spacing:-.02em}
+.tile .d{font-size:12px;margin-top:4px}
+.tile .bar{height:5px;background:var(--base);border-radius:3px;margin-top:10px;overflow:hidden}
+.tile .bar i{display:block;height:100%;background:var(--ok)}
+.tile.alert{background:var(--ok-t);border-color:#bfe3cc}
+.tile.alert.hot{background:var(--bad-t);border-color:#efb4b4}
+@media(max-width:1100px){.board{grid-template-columns:repeat(3,1fr)}}
+/* generic */
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:600;line-height:1.5}
+.ok{background:var(--ok-t);color:var(--ok)}.warn{background:var(--warn-t);color:var(--warn)}.bad{background:var(--bad-t);color:var(--bad)}.info{background:var(--info-t);color:var(--info)}.neut{background:var(--base);color:var(--ink-2)}
+table{width:100%;border-collapse:collapse}
+th{text-align:start;font-size:12px;color:var(--ink-2);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid #EEF0F3;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.btn{border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:var(--r);color:var(--ink)}
+.btn:hover{border-color:var(--ink-3)}
+.btn.p{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.btn.p:hover{background:var(--maroon-d)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field label{font-size:12px;color:var(--ink-2)}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus,.btn:focus-visible,.nav:focus-visible{outline:2px solid var(--sand);outline-offset:1px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--ink-2)}.small{font-size:12px}
+.list>div{padding:10px 0;border-bottom:1px solid #EEF0F3;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.list>div:last-child{border-bottom:0}
+/* parent */
+.kids{display:flex;gap:10px;margin-bottom:16px}
+.kid{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center;min-width:180px;text-align:start}
+.kid.on{border-color:var(--maroon);box-shadow:inset 0 0 0 1px var(--maroon)}
+.kid .av{width:36px;height:36px;border-radius:50%;background:var(--maroon-t);color:var(--maroon);display:grid;place-items:center;font-weight:600}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.quick button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px}
+.quick button span{font-size:20px}
+.quick button.on{border-color:var(--maroon);background:var(--maroon-t)}
+/* bus timeline */
+.bus{position:relative;padding-inline-start:26px}
+.bus:before{content:"";position:absolute;inset-inline-start:8px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.bus .st{position:relative;padding:8px 0}
+.bus .st:before{content:"";position:absolute;inset-inline-start:-23px;top:14px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--line)}
+.bus .st.done:before{background:var(--ok);border-color:var(--ok)}
+.bus .st.live:before{background:var(--maroon);border-color:var(--maroon);box-shadow:0 0 0 5px var(--maroon-t)}
+.bus .st.live b{color:var(--maroon)}
+.eta{background:var(--maroon);color:#fff;border-radius:12px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.eta .big{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.fee{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.fee div{background:var(--base);border-radius:8px;padding:10px 12px}
+.fee b{display:block;font-size:20px}
+.fee .due b{color:var(--bad)}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow:auto;padding:4px 0;margin-bottom:10px}
+.msg{max-width:78%;padding:8px 12px;border-radius:12px;background:var(--base)}
+.msg.me{align-self:flex-end;background:var(--maroon);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:4px 10px;font-size:12px}
+/* attendance toggle */
+.att{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.att button{border:0;background:#fff;padding:5px 10px;color:var(--ink-3)}
+.att button.p.on{background:var(--ok);color:#fff}.att button.a.on{background:var(--bad);color:#fff}.att button.l.on{background:var(--warn);color:#fff}
+/* facilities */
+.pipe{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-3);flex-wrap:wrap}
+.pipe span{padding:3px 8px;border-radius:99px;background:var(--base)}
+.pipe span.on{background:var(--maroon);color:#fff}
+.check label{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #EEF0F3}
+.check label:last-child{border:0}
+/* toast + modal */
+.toasts{position:fixed;inset-inline-end:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--ink);color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:320px;font-size:13px}
+.toast b{display:block}
+.modal{position:fixed;inset:0;background:rgba(20,24,32,.55);display:none;place-items:center;z-index:60}
+.modal.open{display:grid}
+.modal .box{background:#fff;border-radius:12px;padding:20px 22px;width:min(520px,92vw)}
+.lvls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.lvls button{border:2px solid var(--line);background:#fff;border-radius:8px;padding:10px;text-align:start}
+.lvls button.on{border-color:var(--ink)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:6px}
+.banner{background:var(--bad);color:#fff;padding:10px 16px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.trend{display:flex;gap:6px;align-items:flex-end;height:80px}
+.trend div{flex:1;background:var(--maroon-t);border-radius:3px 3px 0 0;position:relative}
+.trend div i{position:absolute;bottom:0;left:0;right:0;background:var(--maroon);border-radius:3px 3px 0 0}
+.trend div small{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:10px;color:var(--ink-2)}
+@media (prefers-reduced-motion:no-preference){.toast{animation:in .25s ease}}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><div class="mark">S3</div><div><b>School360</b><small data-i="brandSub">Qatar</small></div></div>
+    <div class="role-lbl" id="roleLbl"></div>
+    <div id="navList"></div>
+    <div class="spacer"></div>
+    <div class="lang">
+      <button id="btnEn" onclick="setLang('en')">English</button>
+      <button id="btnAr" onclick="setLang('ar')">العربية</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <div><h1 id="pageTitle"></h1><div class="sub" id="pageSub"></div></div>
+      <div class="roles" id="roleTabs"></div>
+    </div>
+    <div id="banner"></div>
+    <div id="view"></div>
+  </main>
+</div>
+<div class="toasts" id="toasts"></div>
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<script>
+/* ---------- i18n ---------- */
+const T={
+en:{brandSub:"Qatar",admin:"Administration",parent:"Parent",teacher:"Teacher",fm:"Facilities",
+ dash:"Command centre",students:"Students",teachers:"Teachers",attendance:"Attendance",buses:"Buses",maint:"Maintenance",cleaning:"Cleaning",fees:"Outstanding fees",pest:"Pest control",emergency:"Emergency alerts",announcements:"Announcements",
+ goodMorning:"Good morning",today:"Today's overview",open:"open",upcoming:"upcoming",trend:"Attendance this week",sendAlert:"Send emergency alert",cancelAlert:"Stand down",
+ confirmed:"confirmed",declined:"unable to attend",pending:"pending",recentWO:"Recent work orders",
+ children:"Your children",grade:"Grade",bus:"Bus",homework:"Homework",docs:"Documents",teachersQ:"Teachers",report:"Report issue",timetable:"Today's timetable",notifs:"Notifications",assistant:"School assistant",ask:"Ask about exams, fees, bus, homework…",
+ annual:"Annual fee",paid:"Paid",due:"Outstanding",nextInst:"Next instalment",payNow:"Pay now",paidOk:"Payment received",receipt:"Receipt",
+ busAway:"minutes away",busStops:"Bus #12 · Route 4",arriving:"Approaching your home",arrived:"Bus arrived",boarded:"boarded the bus",atSchool:"arrived at school",homeBound:"boarded the bus for home",simulate:"Simulate next event",
+ exams:"Exams",dueOn:"Due",myClasses:"Today's classes",markAtt:"Mark attendance",save:"Save attendance",saved:"Attendance saved — parents of absent students notified",addHw:"Assign homework",subject:"Subject",title:"Title",dueDate:"Due date",assign:"Assign",hwSent:"Homework assigned — parents notified",present:"P",absent:"A",late:"L",
+ workOrders:"Work orders",newWO:"Report an issue",category:"Category",location:"Location",priority:"Priority",desc:"Description",photo:"Attach photo",create:"Create work order",woCreated:"Work order created",advance:"Advance",
+ cleanStatus:"Cleaning status",inspect:"Digital inspection",submitInsp:"Submit inspection",inspOk:"Inspection recorded",
+ pestSched:"Pest-control schedule",nextTreat:"Next treatment",pm:"Preventive maintenance",asset:"Asset",lastSvc:"Last service",nextSvc:"Next service",
+ status:{new:"New",assigned:"Assigned",progress:"In progress",done:"Completed",verified:"Verified"},
+ lvl:{red:"Emergency",orange:"Urgent",yellow:"Important",blue:"General"},
+ alertMsg:"The school is following its emergency procedures. Please do not come to the school until further instructions are provided.",
+ alertLive:"Emergency alert active — sent to 1,248 families",rsvp:"Confirm attendance",rsvpOk:"Attendance confirmed",
+ high:"High",med:"Medium",low:"Low",send:"Send",cancel:"Cancel",selectLevel:"Choose alert level",message:"Message"},
+ar:{brandSub:"قطر",admin:"الإدارة",parent:"ولي الأمر",teacher:"المعلم",fm:"المرافق",
+ dash:"مركز القيادة",students:"الطلاب",teachers:"المعلمون",attendance:"الحضور",buses:"الحافلات",maint:"الصيانة",cleaning:"النظافة",fees:"الرسوم المستحقة",pest:"مكافحة الآفات",emergency:"تنبيهات الطوارئ",announcements:"الإعلانات",
+ goodMorning:"صباح الخير",today:"نظرة عامة على اليوم",open:"مفتوح",upcoming:"قادم",trend:"الحضور هذا الأسبوع",sendAlert:"إرسال تنبيه طوارئ",cancelAlert:"إنهاء التنبيه",
+ confirmed:"مؤكد",declined:"غير قادر على الحضور",pending:"قيد الانتظار",recentWO:"أوامر العمل الأخيرة",
+ children:"أبناؤك",grade:"الصف",bus:"الحافلة",homework:"الواجبات",docs:"المستندات",teachersQ:"المعلمون",report:"الإبلاغ عن مشكلة",timetable:"جدول اليوم",notifs:"الإشعارات",assistant:"مساعد المدرسة",ask:"اسأل عن الاختبارات أو الرسوم أو الحافلة أو الواجبات…",
+ annual:"الرسوم السنوية",paid:"المدفوع",due:"المتبقي",nextInst:"القسط القادم",payNow:"ادفع الآن",paidOk:"تم استلام الدفعة",receipt:"الإيصال",
+ busAway:"دقائق متبقية",busStops:"الحافلة ١٢ · المسار ٤",arriving:"تقترب من منزلك",arrived:"وصلت الحافلة",boarded:"صعد إلى الحافلة",atSchool:"وصل إلى المدرسة",homeBound:"صعد إلى حافلة العودة",simulate:"محاكاة الحدث التالي",
+ exams:"الاختبارات",dueOn:"موعد التسليم",myClasses:"حصص اليوم",markAtt:"تسجيل الحضور",save:"حفظ الحضور",saved:"تم حفظ الحضور — تم إشعار أولياء أمور الغائبين",addHw:"إضافة واجب",subject:"المادة",title:"العنوان",dueDate:"تاريخ التسليم",assign:"تعيين",hwSent:"تم تعيين الواجب — تم إشعار أولياء الأمور",present:"ح",absent:"غ",late:"ت",
+ workOrders:"أوامر العمل",newWO:"الإبلاغ عن مشكلة",category:"الفئة",location:"الموقع",priority:"الأولوية",desc:"الوصف",photo:"إرفاق صورة",create:"إنشاء أمر عمل",woCreated:"تم إنشاء أمر العمل",advance:"التالي",
+ cleanStatus:"حالة النظافة",inspect:"تفتيش رقمي",submitInsp:"إرسال التفتيش",inspOk:"تم تسجيل التفتيش",
+ pestSched:"جدول مكافحة الآفات",nextTreat:"المعالجة القادمة",pm:"الصيانة الوقائية",asset:"الأصل",lastSvc:"آخر صيانة",nextSvc:"الصيانة القادمة",
+ status:{new:"جديد",assigned:"مُسند",progress:"قيد التنفيذ",done:"مكتمل",verified:"تم التحقق"},
+ lvl:{red:"طوارئ",orange:"عاجل",yellow:"مهم",blue:"عام"},
+ alertMsg:"تتبع المدرسة حالياً إجراءات الطوارئ. يرجى عدم الحضور إلى المدرسة حتى صدور تعليمات أخرى.",
+ alertLive:"تنبيه الطوارئ نشط — تم إرساله إلى ١٢٤٨ أسرة",rsvp:"تأكيد الحضور",rsvpOk:"تم تأكيد الحضور",
+ high:"عالية",med:"متوسطة",low:"منخفضة",send:"إرسال",cancel:"إلغاء",selectLevel:"اختر مستوى التنبيه",message:"الرسالة"}
+};
+let lang="en";const t=k=>{const p=k.split(".");let v=T[lang];for(const s of p)v=v?.[s];return v??k};
+const qr=n=>"QR "+n.toLocaleString(lang==="ar"?"ar-QA":"en-QA");
+
+/* ---------- seed data ---------- */
+const S={
+ role:"admin", page:"dash", childId:"ahmed", alert:null, paid:false, busStep:1, rsvp:null,
+ kids:[
+  {id:"ahmed",name:{en:"Ahmed",ar:"أحمد"},grade:"5A",att:96,fee:{annual:18000,paid:12000,due:"15 Sep"},tt:["Mathematics","English","Science","Arabic","PE"],
+   hw:[{s:"Science",t:"Chapter 4 — Forces",d:"Sun 6 Sep"},{s:"Mathematics",t:"Fractions worksheet",d:"Mon 7 Sep"}],exams:[{s:"Mathematics",d:"18 Sep, 9:00 AM"},{s:"Arabic",d:"22 Sep, 9:00 AM"}]},
+  {id:"aisha",name:{en:"Aisha",ar:"عائشة"},grade:"2B",att:98,fee:{annual:14000,paid:14000,due:"—"},tt:["Arabic","Mathematics","English","Art","Islamic Studies"],
+   hw:[{s:"English",t:"Reading log — 3 pages",d:"Sun 6 Sep"}],exams:[{s:"English",d:"20 Sep, 8:30 AM"}]}],
+ notifs:[{i:"📚",m:"New homework assigned — Science, Ahmed",w:"2h"},{i:"💰",m:"Fee instalment due 15 September",w:"1d"},{i:"📢",m:"Parent–Teacher Meeting, 10 September",w:"2d"}],
+ roster:[{n:"Ahmed Al-Saleem",s:"p"},{n:"Mohammed Hassan",s:"p"},{n:"Sara Khalid",s:"a"},{n:"Ali Rashid",s:"p"},{n:"Fatima Nasser",s:"l"},{n:"Yousef Ibrahim",s:"p"}],
+ wos:[{id:10482,cat:"HVAC",loc:"Block B / Room 204",pri:"high",st:"assigned",who:"Ravi K.",txt:"AC not cooling"},
+      {id:10481,cat:"Plumbing",loc:"Block A / Toilets G1",pri:"med",st:"progress",who:"Noel D.",txt:"Tap leaking"},
+      {id:10479,cat:"Electrical",loc:"Auditorium",pri:"low",st:"done",who:"Ravi K.",txt:"2 lights out"},
+      {id:10476,cat:"Furniture",loc:"Block C / Room 110",pri:"low",st:"verified",who:"Noel D.",txt:"Broken chair"}],
+ clean:[{b:"Building A",a:[["Classrooms","ok"],["Toilets","ok"],["Canteen","warn"],["Playground","ok"]]},{b:"Building B",a:[["Classrooms","ok"],["Toilets","warn"],["Labs","ok"],["Corridors","ok"]]}],
+ pest:[{loc:"Canteen & kitchen",last:"27 Aug",next:"10 Sep",prod:"Gel bait (cockroach)",tech:"Al-Waha PC"},{loc:"External perimeter",last:"20 Aug",next:"20 Sep",prod:"Residual spray",tech:"Al-Waha PC"},{loc:"Store rooms",last:"5 Aug",next:"5 Sep",prod:"Rodent stations",tech:"Al-Waha PC"}],
+ assets:[{id:"AC-204",n:"AC unit — B/204",last:"15 Aug",next:"15 Sep",d:12},{id:"GEN-01",n:"Standby generator",last:"1 Jul",next:"1 Oct",d:28},{id:"FP-02",n:"Fire pump set",last:"10 Jun",next:"10 Sep",d:7},{id:"LIFT-A",n:"Elevator — Block A",last:"20 Aug",next:"20 Nov",d:78}],
+ trend:[97.1,96.8,95.2,96.4,96.4]
+};
+const STEPS=["new","assigned","progress","done","verified"];
+const NAV={admin:[["dash","▦","dash"],["ann","📢","announcements"],["fees","💰","fees"]],
+ parent:[["home","⌂","children"],["bus","🚌","bus"],["fees","💰","fees"],["ai","✦","assistant"]],
+ teacher:[["classes","▦","myClasses"],["att","✓","markAtt"],["hw","📚","addHw"]],
+ fm:[["wo","🛠","workOrders"],["clean","🧹","cleaning"],["pest","🐜","pest"],["pm","🔧","pm"]]};
+
+/* ---------- helpers ---------- */
+function toast(t1,t2){const d=document.createElement("div");d.className="toast";d.innerHTML=`<b>${t1}</b>${t2||""}`;toasts.appendChild(d);setTimeout(()=>d.remove(),4200)}
+function pushNotif(i,m){S.notifs.unshift({i,m,w:lang==="ar"?"الآن":"now"})}
+function setLang(l){lang=l;document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr";btnEn.classList.toggle("on",l==="en");btnAr.classList.toggle("on",l==="ar");render()}
+function setRole(r){S.role=r;S.page=NAV[r][0][0];render()}
+function go(p){S.page=p;render()}
+function pill(s){const m={ok:"ok",warn:"warn",bad:"bad",high:"bad",med:"warn",low:"neut",new:"info",assigned:"info",progress:"warn",done:"ok",verified:"ok"};return m[s]||"neut"}
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));
+  roleTabs.innerHTML=["admin","parent","teacher","fm"].map(r=>`<button class="${S.role===r?"on":""}" onclick="setRole('${r}')">${t(r)}</button>`).join("");
+  roleLbl.textContent=t(S.role);
+  navList.innerHTML=NAV[S.role].map(([p,ic,k])=>`<button class="nav ${S.page===p?"on":""}" onclick="go('${p}')"><span class="ic">${ic}</span>${t(k)}</button>`).join("");
+  banner.innerHTML=S.alert?`<div class="banner"><span>🚨 ${t("lvl."+S.alert)} — ${t("alertLive")}</span>${S.role==="admin"?`<button class="btn sm" onclick="S.alert=null;render()">${t("cancelAlert")}</button>`:""}</div>`:"";
+  const fn={admin:vAdmin,parent:vParent,teacher:vTeacher,fm:vFM}[S.role];
+  view.innerHTML=fn();
+}
+function head(title,sub){pageTitle.textContent=title;pageSub.textContent=sub||""}
+
+/* ===== ADMIN ===== */
+function vAdmin(){
+  const open=S.wos.filter(w=>w.st!=="verified").length;
+  const pestSoon=S.pest.length;
+  if(S.page==="ann")return vAnnAdmin();
+  if(S.page==="fees")return vFeesAdmin();
+  head(`${t("goodMorning")}, ${lang==="ar"?"مدير المدرسة":"Principal"}`,t("today")+" · "+(lang==="ar"?"الخميس ٣ سبتمبر ٢٠٢٦":"Thursday, 3 September 2026"));
+  const tiles=[
+   ["students","1,248",""],["teachers","126",""],["attendance","96.4%","",96.4],["buses","24",lang==="ar"?"٢٤ في الخدمة":"24 on route"],
+   ["maint",open,t("open")],["cleaning","94%","",94],["fees","QR 485K","124 "+(lang==="ar"?"أسرة":"families")],["pest",pestSoon,t("upcoming")]];
+  return `<div class="board">
+   ${tiles.map(([k,v,d,bar])=>`<div class="tile" onclick="toast('${t(k)}','${lang==="ar"?"فتح التفاصيل":"Drill-down view"}')"><div class="k">${t(k)}</div><div class="v">${v}</div>${d?`<div class="d muted">${d}</div>`:""}${bar?`<div class="bar"><i style="width:${bar}%"></i></div>`:""}</div>`).join("")}
+   <div class="tile wide alert ${S.alert?"hot":""}" onclick="openAlert()"><div class="k">${t("emergency")}</div><div class="v">${S.alert?"1":"0"}</div><div class="d"><span class="btn sm danger">🚨 ${t("sendAlert")}</span></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+   <div class="panel"><h2>${t("trend")}</h2><div class="trend" style="margin-top:20px">${S.trend.map((v,i)=>`<div><small>${v}%</small><i style="height:${(v-90)*10}%"></i></div>`).join("")}</div><div class="row small muted" style="justify-content:space-between;margin-top:6px"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span></div></div>
+   <div class="panel"><h2>${t("recentWO")} <button class="btn sm" onclick="setRole('fm')">${t("fm")} →</button></h2>
+    <table><tr><th>#</th><th>${t("category")}</th><th>${t("location")}</th><th>${t("status.new").split(" ")[0]?"":""}${lang==="ar"?"الحالة":"Status"}</th></tr>
+    ${S.wos.slice(0,4).map(w=>`<tr><td class="muted">${w.id}</td><td>${w.cat}</td><td>${w.loc}</td><td><span class="tag ${pill(w.st)}">${t("status."+w.st)}</span></td></tr>`).join("")}</table></div>
+  </div>`;
+}
+function vAnnAdmin(){head(t("announcements"),lang==="ar"?"قناة واحدة بدل مجموعات واتساب":"One channel instead of WhatsApp groups");
+ return `<div class="grid g2"><div class="panel"><h2>Parent–Teacher Meeting</h2><p>10 September · 3:00–6:00 PM · School Auditorium</p>
+ <div class="fee"><div><span class="small muted">✅ ${t("confirmed")}</span><b>${687+(S.rsvp?1:0)}</b></div><div><span class="small muted">❌ ${t("declined")}</span><b>123</b></div><div><span class="small muted">⏳ ${t("pending")}</span><b>${438-(S.rsvp?1:0)}</b></div></div></div>
+ <div class="panel"><h2>${lang==="ar"?"إعلان جديد":"New announcement"}</h2><div class="field"><label>${t("title")}</label><input placeholder="Sports Day 2026"></div><div class="field"><label>${t("message")}</label><textarea rows="3"></textarea></div><div class="row"><select class="btn"><option>All parents</option><option>Grade 5</option><option>Bus route 4</option></select><button class="btn p" onclick="toast('${lang==="ar"?"تم إرسال الإعلان":"Announcement sent"}','1,248 '+(lang==='ar'?'أسرة':'families'))">${t("send")}</button></div></div></div>`}
+function vFeesAdmin(){head(t("fees"),"");
+ const rows=[["Al-Saleem",S.paid?0:6000,"15 Sep"],["Hassan",9000,"15 Sep"],["Khalid",4500,"1 Sep"],["Rashid",12000,"15 Sep"]];
+ return `<div class="panel"><table><tr><th>${lang==="ar"?"الأسرة":"Family"}</th><th>${t("due")}</th><th>${t("nextInst")}</th><th></th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td><b>${qr(r[1])}</b></td><td>${r[2]}</td><td>${r[1]?`<span class="tag ${r[2]==="1 Sep"?"bad":"warn"}">${r[2]==="1 Sep"?(lang==="ar"?"متأخر":"Overdue"):t("pending")}</span>`:`<span class="tag ok">${t("paid")}</span>`}</td></tr>`).join("")}</table></div>`}
+function openAlert(){let lvl="red";const box=modalBox;const draw=()=>{box.innerHTML=`<h2>${t("selectLevel")}</h2><div class="lvls">${["red","orange","yellow","blue"].map(l=>`<button class="${lvl===l?"on":""}" data-l="${l}"><span class="dot" style="background:${{red:"#B42323",orange:"#E07A1F",yellow:"#D6A81B",blue:"#1F5FA8"}[l]}"></span>${t("lvl."+l)}</button>`).join("")}</div><div class="field"><label>${t("message")}</label><textarea rows="3">${t("alertMsg")}</textarea></div><div class="row" style="justify-content:flex-end"><button class="btn" onclick="modal.classList.remove('open')">${t("cancel")}</button><button class="btn danger" id="fire">${t("send")}</button></div>`;
+  box.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lvl=b.dataset.l;draw()});box.querySelector("#fire").onclick=()=>{S.alert=lvl;pushNotif("🚨",t("alertMsg"));modal.classList.remove("open");toast(t("lvl."+lvl),t("alertLive"));render()}};draw();modal.classList.add("open")}
+
+/* ===== PARENT ===== */
+const kid=()=>S.kids.find(k=>k.id===S.childId);
+function vParent(){
+  head(`${t("goodMorning")}, ${lang==="ar"?"السيد سليم":"Mr. Saleem"}`,"");
+  const k=kid();const kn=k.name[lang];
+  const kids=`<div class="kids">${S.kids.map(c=>`<button class="kid ${S.childId===c.id?"on":""}" onclick="S.childId='${c.id}';render()"><div class="av">${c.name[lang][0]}</div><div><b>${c.name[lang]}</b><div class="small muted">${t("grade")} ${c.grade} · ${t("attendance")} <span class="tag ${c.att>=95?"ok":"warn"}">${c.att}%</span></div></div></button>`).join("")}</div>`;
+  if(S.page==="bus")return kids+vBus(kn);
+  if(S.page==="fees")return kids+vFeesParent(k,kn);
+  if(S.page==="ai")return kids+vAI(kn);
+  const quick=[["bus","🚌","bus"],["fees","💰","fees"],["home","📚","homework"],["home","📊","attendance"],["home","📢","announcements"],["home","👩‍🏫","teachersQ"],["home","🔧","report"],["home","📄","docs"]];
+  return kids+`<div class="quick">${quick.map(([p,i,l])=>`<button onclick="${p==="home"?`toast('${t(l)}','${lang==="ar"?"يفتح في التطبيق الكامل":"Opens in the full app"}')`:`go('${p}')`}"><span>${i}</span>${t(l)}</button>`).join("")}</div>
+  <div class="grid g3">
+   <div class="panel"><h2>${t("timetable")}</h2><div class="list">${k.tt.map((s,i)=>`<div><span>${s}</span><span class="muted small">${7+i}:${i?"30":"45"}</span></div>`).join("")}</div></div>
+   <div class="panel"><h2>${t("homework")}</h2><div class="list">${k.hw.map(h=>`<div><div><b>${h.s}</b><div class="small">${h.t}</div></div><span class="tag warn">${t("dueOn")} ${h.d}</span></div>`).join("")}</div>
+     <h2 style="margin-top:14px">${t("exams")}</h2><div class="list">${k.exams.map(e=>`<div><b>${e.s}</b><span class="muted small">${e.d}</span></div>`).join("")}</div></div>
+   <div class="panel"><h2>${t("notifs")}</h2><div class="list">${S.notifs.slice(0,6).map(n=>`<div><span>${n.i} ${n.m}</span><span class="muted small">${n.w}</span></div>`).join("")}</div>
+     <div class="panel" style="margin-top:12px;background:var(--sand-t);border-color:#e8dcc1"><b>Parent–Teacher Meeting</b><div class="small muted">10 Sep · 3:00–6:00 PM</div>${S.rsvp?`<span class="tag ok" style="margin-top:6px">${t("rsvpOk")}</span>`:`<button class="btn sm p" style="margin-top:8px" onclick="S.rsvp=1;toast('${t("rsvpOk")}');render()">${t("rsvp")}</button>`}</div></div>
+  </div>`;
+}
+function vBus(kn){
+  const steps=[[t("arriving"),"6:50"],[t("arrived"),"6:57"],[`${kn} ${t("boarded")}`,"6:58"],[`${kn} ${t("atSchool")}`,"7:42"],[`${kn} ${t("homeBound")}`,"13:35"]];
+  const eta=S.busStep===1?8:S.busStep===2?0:null;
+  return `<div class="grid g2"><div>
+   <div class="eta"><div><div class="small" style="opacity:.8">${t("busStops")}</div><div class="big">${eta===null?"—":eta===0?t("arrived"):eta}</div><div class="small" style="opacity:.8">${eta>0?t("busAway"):""}</div></div><div style="font-size:42px">🚌</div></div>
+   <div class="panel"><div class="bus">${steps.map((s,i)=>`<div class="st ${i<S.busStep?"done":i===S.busStep?"live":""}"><b>${s[0]}</b><div class="small muted">${i<=S.busStep?s[1]:"—"}</div></div>`).join("")}</div>
+   <button class="btn" style="margin-top:10px" onclick="if(S.busStep<5){S.busStep++;pushNotif('🚌',steps[S.busStep-1][0]);toast('🚌 '+steps[S.busStep-1][0])}render()">${t("simulate")}</button></div></div>
+   <div class="panel"><h2>${lang==="ar"?"الخريطة الحية":"Live map"}</h2><div style="height:260px;border-radius:8px;background:repeating-linear-gradient(45deg,#e9ecf1 0 10px,#f1f3f6 10px 20px);display:grid;place-items:center;color:var(--ink-3)">GPS + 500 m geofence<br><span class="small">Phase 2</span></div></div></div>`;
+}
+function vFeesParent(k,kn){
+  const due=k.fee.annual-k.fee.paid-(S.paid&&k.id==="ahmed"?6000:0);
+  return `<div class="grid g2"><div class="panel"><h2>${kn} — ${t("grade")} ${k.grade}</h2>
+   <div class="fee"><div><span class="small muted">${t("annual")}</span><b>${qr(k.fee.annual)}</b></div><div><span class="small muted">${t("paid")}</span><b>${qr(k.fee.annual-due)}</b></div><div class="due"><span class="small muted">${t("due")}</span><b>${qr(due)}</b></div></div>
+   ${due?`<div class="row" style="justify-content:space-between"><span>${t("nextInst")}: <b>${k.fee.due}</b></span><button class="btn p" onclick="S.paid=true;pushNotif('🧾','${t("paidOk")} — QR 6,000');toast('${t("paidOk")}','${qr(6000)} · ${t("receipt")} #R-2026-0912');render()">${t("payNow")} · ${qr(due)}</button></div>`:`<span class="tag ok">${t("paidOk")}</span>`}</div>
+   <div class="panel"><h2>${t("receipt")}s</h2><div class="list">${S.paid&&k.id==="ahmed"?`<div><span>🧾 R-2026-0912 · 3 Sep 2026</span><b>${qr(6000)}</b></div>`:""}<div><span>🧾 R-2026-0411 · 20 Apr 2026</span><b>${qr(6000)}</b></div><div><span>🧾 R-2025-0902 · 2 Sep 2025</span><b>${qr(6000)}</b></div></div></div></div>`;
+}
+let chat=[];
+function vAI(kn){
+  const k=kid();
+  const qs=lang==="ar"?["متى اختبار الرياضيات القادم؟","كم المتبقي من الرسوم؟","أين الحافلة؟","ما هو الواجب اليوم؟"]:["When is the next maths exam?","How much fee is remaining?","Where is the school bus?","What homework is due?"];
+  return `<div class="panel" style="max-width:640px"><h2>✦ ${t("assistant")}</h2><div class="chat" id="chatBox">${chat.length?chat.map(m=>`<div class="msg ${m.me?"me":""}">${m.t}</div>`).join(""):`<div class="msg">${lang==="ar"?`مرحباً! أستطيع الإجابة عن أسئلة حول ${kn}.`:`Hi! Ask me anything about ${kn}.`}</div>`}</div>
+   <div class="chips">${qs.map(q=>`<button onclick="askAI('${q}')">${q}</button>`).join("")}</div>
+   <div class="row"><input id="aiIn" class="btn" style="flex:1;text-align:start" placeholder="${t("ask")}" onkeydown="if(event.key==='Enter')askAI(this.value)"><button class="btn p" onclick="askAI(aiIn.value)">${t("send")}</button></div></div>`;
+}
+function askAI(q){ if(!q.trim())return; const k=kid(),kn=k.name[lang],ql=q.toLowerCase();let a;
+  const due=k.fee.annual-k.fee.paid-(S.paid&&k.id==="ahmed"?6000:0);
+  if(/exam|اختبار/.test(ql)){const e=k.exams.find(x=>/math|رياض/.test(ql)?/Math/.test(x.s):true);a=lang==="ar"?`اختبار ${e.s} لـ${kn} في ${e.d}.`:`${kn}'s ${e.s} exam is scheduled for ${e.d}.`}
+  else if(/fee|رسوم|pay/.test(ql))a=lang==="ar"?`المتبقي من رسوم ${kn}: ${qr(due)}${due?`، القسط القادم ${k.fee.due}.`:"."}`:`Outstanding balance for ${kn} is ${qr(due)}${due?`, next instalment due ${k.fee.due}.`:"."}`;
+  else if(/bus|حافلة/.test(ql))a=lang==="ar"?"الحافلة ١٢ على بعد ٦ دقائق تقريباً.":"Bus #12 is approximately 6 minutes away.";
+  else if(/homework|واجب/.test(ql))a=(lang==="ar"?"الواجبات: ":"Homework due: ")+k.hw.map(h=>`${h.s} — ${h.t} (${h.d})`).join("; ");
+  else if(/attend|حضور/.test(ql))a=lang==="ar"?`حضور ${kn} هذا الفصل ${k.att}٪.`:`${kn}'s attendance this term is ${k.att}%.`;
+  else a=lang==="ar"?"يمكنني المساعدة في الاختبارات والرسوم والحافلة والواجبات والحضور.":"I can help with exams, fees, bus, homework and attendance.";
+  chat.push({me:1,t:q},{t:a});render();const b=document.getElementById("chatBox");if(b)b.scrollTop=1e5;}
+
+/* ===== TEACHER ===== */
+function vTeacher(){
+  head(`${t("goodMorning")}, ${lang==="ar"?"أ. مريم":"Ms. Mariam"}`,t("grade")+" 5A");
+  if(S.page==="att")return vAtt();
+  if(S.page==="hw")return vHw();
+  const cls=[["7:45","5A","Mathematics"],["8:30","5B","Mathematics"],["10:00","5A","Science"],["11:30","4A","Mathematics"]];
+  return `<div class="grid g2"><div class="panel"><h2>${t("myClasses")}</h2><div class="list">${cls.map(c=>`<div><span><b>${c[0]}</b> · ${t("grade")} ${c[1]}</span><span>${c[2]}</span></div>`).join("")}</div></div>
+  <div class="panel"><h2>${lang==="ar"?"إجراءات سريعة":"Quick actions"}</h2><div class="quick" style="grid-template-columns:1fr 1fr 1fr"><button onclick="go('att')"><span>✓</span>${t("markAtt")}</button><button onclick="go('hw')"><span>📚</span>${t("addHw")}</button><button onclick="toast('${t("announcements")}')"><span>📢</span>${t("announcements")}</button></div></div></div>`;
+}
+function vAtt(){return `<div class="panel" style="max-width:640px"><h2>${t("grade")} 5A — ${t("attendance")} <span class="tag ok">${S.roster.filter(r=>r.s==="p").length}/${S.roster.length}</span></h2>
+ <table>${S.roster.map((r,i)=>`<tr><td>${r.n}</td><td style="text-align:end"><span class="att">${["p","a","l"].map(s=>`<button class="${s} ${r.s===s?"on":""}" onclick="S.roster[${i}].s='${s}';render()">${t(s==="p"?"present":s==="a"?"absent":"late")}</button>`).join("")}</span></td></tr>`).join("")}</table>
+ <button class="btn p" style="margin-top:12px" onclick="S.roster.filter(r=>r.s==='a').forEach(r=>pushNotif('📊',r.n.split(' ')[0]+' '+(lang==='ar'?'سُجّل غائباً اليوم':'was marked absent today')));toast('${t("saved")}');render()">${t("save")}</button></div>`}
+function vHw(){return `<div class="panel" style="max-width:520px"><h2>${t("addHw")} — ${t("grade")} 5A</h2>
+ <div class="field"><label>${t("subject")}</label><select id="hwS"><option>Science</option><option>Mathematics</option><option>English</option><option>Arabic</option></select></div>
+ <div class="field"><label>${t("title")}</label><input id="hwT" value="Chapter 5 — Energy"></div>
+ <div class="field"><label>${t("dueDate")}</label><input id="hwD" type="date" value="2026-09-08"></div>
+ <button class="btn p" onclick="S.kids[0].hw.unshift({s:hwS.value,t:hwT.value,d:hwD.value});pushNotif('📚',(lang==='ar'?'واجب جديد — ':'New homework assigned — ')+hwS.value);toast('${t("hwSent")}',hwS.value+' · '+hwT.value);go('classes')">${t("assign")}</button></div>`}
+
+/* ===== FACILITIES ===== */
+function vFM(){
+  head(lang==="ar"?"مركز قيادة المرافق":"Facilities command centre",lang==="ar"?"المباني · الأصول · الصيانة · النظافة · مكافحة الآفات":"Buildings · Assets · Maintenance · Cleaning · Pest control");
+  if(S.page==="clean")return vClean();
+  if(S.page==="pest")return `<div class="panel"><h2>${t("pestSched")}</h2><table><tr><th>${t("location")}</th><th>${lang==="ar"?"آخر معالجة":"Last treatment"}</th><th>${lang==="ar"?"المنتج":"Product"}</th><th>${lang==="ar"?"الفني":"Technician"}</th><th>${t("nextTreat")}</th></tr>${S.pest.map(p=>`<tr><td>${p.loc}</td><td>${p.last}</td><td>${p.prod}</td><td>${p.tech}</td><td><span class="tag ${p.next==="5 Sep"?"bad":p.next==="10 Sep"?"warn":"ok"}">${p.next}</span></td></tr>`).join("")}</table><p class="small muted">🔔 ${lang==="ar"?"تذكير تلقائي للمدير قبل ٧ أيام من كل معالجة.":"Automatic reminder to the facilities manager 7 days before each treatment."}</p></div>`;
+  if(S.page==="pm")return `<div class="panel"><h2>${t("pm")}</h2><table><tr><th>${t("asset")}</th><th>${t("lastSvc")}</th><th>${t("nextSvc")}</th><th>${lang==="ar"?"الأيام":"Days"}</th></tr>${S.assets.map(a=>`<tr><td><b>${a.id}</b> <span class="muted">${a.n}</span></td><td>${a.last}</td><td>${a.next}</td><td><span class="tag ${a.d<=7?"bad":a.d<=14?"warn":"ok"}">${a.d}</span></td></tr>`).join("")}</table></div>`;
+  return `<div class="grid g2" style="grid-template-columns:1.4fr 1fr"><div class="panel"><h2>${t("workOrders")} <span class="tag warn">${S.wos.filter(w=>w.st!=="verified").length} ${t("open")}</span></h2>
+   ${S.wos.map((w,i)=>`<div style="padding:10px 0;border-bottom:1px solid #EEF0F3"><div class="row" style="justify-content:space-between"><div><b>#${w.id}</b> · ${w.cat} · ${w.loc}<div class="small muted">${w.txt} · ${w.who}</div></div><div class="row"><span class="tag ${pill(w.pri)}">${t(w.pri)}</span>${w.st!=="verified"?`<button class="btn sm" onclick="S.wos[${i}].st=STEPS[STEPS.indexOf('${w.st}')+1];toast('#${w.id}',t('status.'+S.wos[${i}].st));render()">${t("advance")} →</button>`:""}</div></div>
+   <div class="pipe" style="margin-top:6px">${STEPS.map(s=>`<span class="${STEPS.indexOf(s)<=STEPS.indexOf(w.st)?"on":""}">${t("status."+s)}</span>`).join("")}</div></div>`).join("")}</div>
+   <div class="panel"><h2>🚨 ${t("newWO")}</h2>
+   <div class="field"><label>${t("category")}</label><select id="woC"><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Furniture</option><option>Fire system</option><option>CCTV</option></select></div>
+   <div class="field"><label>${t("location")}</label><input id="woL" value="Block B / Room 204"></div>
+   <div class="field"><label>${t("priority")}</label><select id="woP"><option value="high">${t("high")}</option><option value="med">${t("med")}</option><option value="low">${t("low")}</option></select></div>
+   <div class="field"><label>${t("desc")}</label><textarea id="woD" rows="2">AC not working</textarea></div>
+   <div class="row"><button class="btn sm">📸 ${t("photo")}</button><button class="btn p" onclick="const id=S.wos[0].id+1;S.wos.unshift({id,cat:woC.value,loc:woL.value,pri:woP.value,st:'new',who:'—',txt:woD.value});toast('${t("woCreated")}','#'+id+' · '+woC.value);render()">${t("create")}</button></div></div></div>`;
+}
+function vClean(){return `<div class="grid g2">${S.clean.map(b=>`<div class="panel"><h2>${b.b}</h2><table>${b.a.map(a=>`<tr><td>${a[0]}</td><td style="text-align:end"><span class="tag ${pill(a[1])}">${a[1]==="ok"?(lang==="ar"?"مكتمل":"Done"):(lang==="ar"?"قيد التنفيذ":"In progress")}</span></td></tr>`).join("")}</table></div>`).join("")}
+ <div class="panel"><h2>${t("inspect")} — Building A / Canteen</h2><div class="check">${(lang==="ar"?["تنظيف الأرضيات","تنظيف الطاولات","فحص النوافذ","إزالة النفايات","التعقيم"]:["Floors cleaned","Desks / tables cleaned","Windows checked","Waste removed","Sanitization completed"]).map(c=>`<label><input type="checkbox" checked> ${c}</label>`).join("")}</div>
+ <button class="btn p" style="margin-top:10px" onclick="S.clean[0].a[2][1]='ok';toast('${t("inspOk")}','Building A / Canteen · 94% → 96%');render()">${t("submitInsp")}</button><p class="small muted">${lang==="ar"?"دليل خدمة مؤرخ وموقّع بدل تقرير المقاول.":"Timestamped proof of service instead of trusting the contractor's report."}</p></div></div>`}
+
+setLang("en");
+</script>
+</body>
+</html>
