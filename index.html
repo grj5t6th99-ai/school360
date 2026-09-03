@@ -140,6 +140,26 @@ tr:last-child td{border-bottom:0}
 .trend div small{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:10px;color:var(--ink-2)}
 @media (prefers-reduced-motion:no-preference){.toast{animation:in .25s ease}}
 @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.search{border:1px solid var(--line);border-radius:var(--r);padding:7px 10px;min-width:220px;background:#fff}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:13px}
+.kv span:nth-child(odd){color:var(--ink-2)}
+.modal .box.wide{width:min(760px,94vw);max-height:90vh;overflow:auto}
+.guide{position:absolute;inset-inline-end:28px;top:8px;z-index:40}.main{position:relative}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.mini div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.mini b{display:block;font-size:18px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal div{background:#fff;border:1px solid var(--line);border-radius:6px;min-height:58px;padding:4px 6px;font-size:11px}
+.cal div.h{background:none;border:0;min-height:0;color:var(--ink-2);text-align:center}
+.cal div em{display:block;font-style:normal;margin-top:2px;padding:1px 4px;border-radius:3px;background:var(--maroon-t);color:var(--maroon);font-size:10px;line-height:1.3}
+.cal div em.ev2{background:var(--info-t);color:var(--info)}
+.cal div em.ev3{background:var(--warn-t);color:var(--warn)}
+.link{color:var(--maroon);cursor:pointer;font-weight:600}
+.msgs{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin-bottom:10px}
+.thread{border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
+.thread.on{border-color:var(--maroon);background:var(--maroon-t)}
+@media(max-width:1100px){.mini{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -157,7 +177,7 @@ tr:last-child td{border-bottom:0}
   <main class="main">
     <div class="top">
       <div><h1 id="pageTitle"></h1><div class="sub" id="pageSub"></div></div>
-      <div class="roles" id="roleTabs"></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div id="guideBtns"></div><div class="roles" id="roleTabs"></div></div>
     </div>
     <div id="banner"></div>
     <div id="view"></div>
@@ -166,211 +186,344 @@ tr:last-child td{border-bottom:0}
 <div class="toasts" id="toasts"></div>
 <div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
 <script>
-/* ---------- i18n ---------- */
+/* =========================================================
+   School360 Qatar — review demo. All data below is sample data.
+   ========================================================= */
 const T={
-en:{brandSub:"Qatar",admin:"Administration",parent:"Parent",teacher:"Teacher",fm:"Facilities",
- dash:"Command centre",students:"Students",teachers:"Teachers",attendance:"Attendance",buses:"Buses",maint:"Maintenance",cleaning:"Cleaning",fees:"Outstanding fees",pest:"Pest control",emergency:"Emergency alerts",announcements:"Announcements",
- goodMorning:"Good morning",today:"Today's overview",open:"open",upcoming:"upcoming",trend:"Attendance this week",sendAlert:"Send emergency alert",cancelAlert:"Stand down",
- confirmed:"confirmed",declined:"unable to attend",pending:"pending",recentWO:"Recent work orders",
- children:"Your children",grade:"Grade",bus:"Bus",homework:"Homework",docs:"Documents",teachersQ:"Teachers",report:"Report issue",timetable:"Today's timetable",notifs:"Notifications",assistant:"School assistant",ask:"Ask about exams, fees, bus, homework…",
- annual:"Annual fee",paid:"Paid",due:"Outstanding",nextInst:"Next instalment",payNow:"Pay now",paidOk:"Payment received",receipt:"Receipt",
- busAway:"minutes away",busStops:"Bus #12 · Route 4",arriving:"Approaching your home",arrived:"Bus arrived",boarded:"boarded the bus",atSchool:"arrived at school",homeBound:"boarded the bus for home",simulate:"Simulate next event",
- exams:"Exams",dueOn:"Due",myClasses:"Today's classes",markAtt:"Mark attendance",save:"Save attendance",saved:"Attendance saved — parents of absent students notified",addHw:"Assign homework",subject:"Subject",title:"Title",dueDate:"Due date",assign:"Assign",hwSent:"Homework assigned — parents notified",present:"P",absent:"A",late:"L",
- workOrders:"Work orders",newWO:"Report an issue",category:"Category",location:"Location",priority:"Priority",desc:"Description",photo:"Attach photo",create:"Create work order",woCreated:"Work order created",advance:"Advance",
- cleanStatus:"Cleaning status",inspect:"Digital inspection",submitInsp:"Submit inspection",inspOk:"Inspection recorded",
- pestSched:"Pest-control schedule",nextTreat:"Next treatment",pm:"Preventive maintenance",asset:"Asset",lastSvc:"Last service",nextSvc:"Next service",
- status:{new:"New",assigned:"Assigned",progress:"In progress",done:"Completed",verified:"Verified"},
- lvl:{red:"Emergency",orange:"Urgent",yellow:"Important",blue:"General"},
- alertMsg:"The school is following its emergency procedures. Please do not come to the school until further instructions are provided.",
- alertLive:"Emergency alert active — sent to 1,248 families",rsvp:"Confirm attendance",rsvpOk:"Attendance confirmed",
- high:"High",med:"Medium",low:"Low",send:"Send",cancel:"Cancel",selectLevel:"Choose alert level",message:"Message"},
-ar:{brandSub:"قطر",admin:"الإدارة",parent:"ولي الأمر",teacher:"المعلم",fm:"المرافق",
- dash:"مركز القيادة",students:"الطلاب",teachers:"المعلمون",attendance:"الحضور",buses:"الحافلات",maint:"الصيانة",cleaning:"النظافة",fees:"الرسوم المستحقة",pest:"مكافحة الآفات",emergency:"تنبيهات الطوارئ",announcements:"الإعلانات",
- goodMorning:"صباح الخير",today:"نظرة عامة على اليوم",open:"مفتوح",upcoming:"قادم",trend:"الحضور هذا الأسبوع",sendAlert:"إرسال تنبيه طوارئ",cancelAlert:"إنهاء التنبيه",
- confirmed:"مؤكد",declined:"غير قادر على الحضور",pending:"قيد الانتظار",recentWO:"أوامر العمل الأخيرة",
- children:"أبناؤك",grade:"الصف",bus:"الحافلة",homework:"الواجبات",docs:"المستندات",teachersQ:"المعلمون",report:"الإبلاغ عن مشكلة",timetable:"جدول اليوم",notifs:"الإشعارات",assistant:"مساعد المدرسة",ask:"اسأل عن الاختبارات أو الرسوم أو الحافلة أو الواجبات…",
- annual:"الرسوم السنوية",paid:"المدفوع",due:"المتبقي",nextInst:"القسط القادم",payNow:"ادفع الآن",paidOk:"تم استلام الدفعة",receipt:"الإيصال",
- busAway:"دقائق متبقية",busStops:"الحافلة ١٢ · المسار ٤",arriving:"تقترب من منزلك",arrived:"وصلت الحافلة",boarded:"صعد إلى الحافلة",atSchool:"وصل إلى المدرسة",homeBound:"صعد إلى حافلة العودة",simulate:"محاكاة الحدث التالي",
- exams:"الاختبارات",dueOn:"موعد التسليم",myClasses:"حصص اليوم",markAtt:"تسجيل الحضور",save:"حفظ الحضور",saved:"تم حفظ الحضور — تم إشعار أولياء أمور الغائبين",addHw:"إضافة واجب",subject:"المادة",title:"العنوان",dueDate:"تاريخ التسليم",assign:"تعيين",hwSent:"تم تعيين الواجب — تم إشعار أولياء الأمور",present:"ح",absent:"غ",late:"ت",
- workOrders:"أوامر العمل",newWO:"الإبلاغ عن مشكلة",category:"الفئة",location:"الموقع",priority:"الأولوية",desc:"الوصف",photo:"إرفاق صورة",create:"إنشاء أمر عمل",woCreated:"تم إنشاء أمر العمل",advance:"التالي",
- cleanStatus:"حالة النظافة",inspect:"تفتيش رقمي",submitInsp:"إرسال التفتيش",inspOk:"تم تسجيل التفتيش",
- pestSched:"جدول مكافحة الآفات",nextTreat:"المعالجة القادمة",pm:"الصيانة الوقائية",asset:"الأصل",lastSvc:"آخر صيانة",nextSvc:"الصيانة القادمة",
- status:{new:"جديد",assigned:"مُسند",progress:"قيد التنفيذ",done:"مكتمل",verified:"تم التحقق"},
- lvl:{red:"طوارئ",orange:"عاجل",yellow:"مهم",blue:"عام"},
- alertMsg:"تتبع المدرسة حالياً إجراءات الطوارئ. يرجى عدم الحضور إلى المدرسة حتى صدور تعليمات أخرى.",
- alertLive:"تنبيه الطوارئ نشط — تم إرساله إلى ١٢٤٨ أسرة",rsvp:"تأكيد الحضور",rsvpOk:"تم تأكيد الحضور",
- high:"عالية",med:"متوسطة",low:"منخفضة",send:"إرسال",cancel:"إلغاء",selectLevel:"اختر مستوى التنبيه",message:"الرسالة"}
+en:{admin:"Administration",parent:"Parent",teacher:"Teacher",fm:"Facilities",
+ dash:"Command centre",students:"Students",parents:"Parents",teachers:"Teachers",transport:"Transport",ann:"Announcements",calendar:"Calendar",fees:"Fees",docs:"Documents",messages:"Messages",reports:"Reports",settings:"Settings",
+ home:"Home",attendance:"Attendance",homework:"Homework",results:"Exams & results",bus:"School bus",report:"Report issue",notifs:"Notifications",ai:"AI assistant",receipts:"Receipts",
+ classes:"My classes",timetable:"Timetable",att:"Mark attendance",hw:"Homework",materials:"Study material",marks:"Enter marks",
+ wo:"Work orders",assets:"Assets",clean:"Cleaning",pest:"Pest control",pm:"Preventive maintenance",contractors:"Contractors",
+ goodMorning:"Good morning",today:"Thursday, 3 September 2026",open:"open",upcoming:"upcoming",maint:"Maintenance",cleaning:"Cleaning",outstanding:"Outstanding fees",emergency:"Emergency alerts",buses:"Buses",trend:"Attendance this week",
+ sendAlert:"Send emergency alert",cancelAlert:"Stand down",selectLevel:"Choose alert level",message:"Message",send:"Send",cancel:"Cancel",close:"Close",save:"Save",
+ alertMsg:"The school is following its emergency procedures. Please do not come to the school until further instructions are provided.",alertLive:"Emergency alert active — sent to 1,248 families",
+ lvl:{red:"Emergency",orange:"Urgent",yellow:"Important",blue:"General"},status:{new:"New",assigned:"Assigned",progress:"In progress",done:"Completed",verified:"Verified"},
+ high:"High",med:"Medium",low:"Low",search:"Search…",addStudent:"Add student",viewProfile:"View profile",grade:"Grade",section:"Section",
+ confirmed:"confirmed",declined:"unable to attend",pending:"pending",rsvp:"Confirm attendance",rsvpOk:"Attendance confirmed",
+ children:"Your children",annual:"Annual fee",paid:"Paid",due:"Outstanding",nextInst:"Next instalment",payNow:"Pay now",paidOk:"Payment received",
+ busAway:"minutes away",arriving:"Approaching your home",arrived:"Bus arrived",boarded:"boarded the bus",atSchool:"arrived at school",homeBound:"boarded the bus for home",simulate:"Simulate next bus event",
+ saved:"Attendance saved — parents of absent students notified",hwSent:"Homework assigned — parents notified",assign:"Assign",subject:"Subject",title:"Title",dueDate:"Due date",present:"P",absent:"A",late:"L",
+ newWO:"Report an issue",category:"Category",location:"Location",priority:"Priority",desc:"Description",photo:"Attach photo",create:"Create work order",woCreated:"Work order created",advance:"Advance",
+ inspect:"Digital inspection",submitInsp:"Submit inspection",inspOk:"Inspection recorded",nextTreat:"Next treatment",asset:"Asset",lastSvc:"Last service",nextSvc:"Next service",
+ ask:"Ask about exams, fees, bus, homework…",guide:"Demo guide",reset:"Reset demo",sample:"Sample data",thisIsDemo:"All names, numbers and records in this demo are fictional sample data."},
+ar:{admin:"الإدارة",parent:"ولي الأمر",teacher:"المعلم",fm:"المرافق",
+ dash:"مركز القيادة",students:"الطلاب",parents:"أولياء الأمور",teachers:"المعلمون",transport:"النقل",ann:"الإعلانات",calendar:"التقويم",fees:"الرسوم",docs:"المستندات",messages:"الرسائل",reports:"التقارير",settings:"الإعدادات",
+ home:"الرئيسية",attendance:"الحضور",homework:"الواجبات",results:"الاختبارات والنتائج",bus:"الحافلة",report:"الإبلاغ عن مشكلة",notifs:"الإشعارات",ai:"المساعد الذكي",receipts:"الإيصالات",
+ classes:"حصصي",timetable:"الجدول",att:"تسجيل الحضور",hw:"الواجبات",materials:"المواد الدراسية",marks:"إدخال الدرجات",
+ wo:"أوامر العمل",assets:"الأصول",clean:"النظافة",pest:"مكافحة الآفات",pm:"الصيانة الوقائية",contractors:"المقاولون",
+ goodMorning:"صباح الخير",today:"الخميس ٣ سبتمبر ٢٠٢٦",open:"مفتوح",upcoming:"قادم",maint:"الصيانة",cleaning:"النظافة",outstanding:"الرسوم المستحقة",emergency:"تنبيهات الطوارئ",buses:"الحافلات",trend:"الحضور هذا الأسبوع",
+ sendAlert:"إرسال تنبيه طوارئ",cancelAlert:"إنهاء التنبيه",selectLevel:"اختر مستوى التنبيه",message:"الرسالة",send:"إرسال",cancel:"إلغاء",close:"إغلاق",save:"حفظ",
+ alertMsg:"تتبع المدرسة حالياً إجراءات الطوارئ. يرجى عدم الحضور إلى المدرسة حتى صدور تعليمات أخرى.",alertLive:"تنبيه الطوارئ نشط — تم إرساله إلى ١٢٤٨ أسرة",
+ lvl:{red:"طوارئ",orange:"عاجل",yellow:"مهم",blue:"عام"},status:{new:"جديد",assigned:"مُسند",progress:"قيد التنفيذ",done:"مكتمل",verified:"تم التحقق"},
+ high:"عالية",med:"متوسطة",low:"منخفضة",search:"بحث…",addStudent:"إضافة طالب",viewProfile:"عرض الملف",grade:"الصف",section:"الشعبة",
+ confirmed:"مؤكد",declined:"غير قادر على الحضور",pending:"قيد الانتظار",rsvp:"تأكيد الحضور",rsvpOk:"تم تأكيد الحضور",
+ children:"أبناؤك",annual:"الرسوم السنوية",paid:"المدفوع",due:"المتبقي",nextInst:"القسط القادم",payNow:"ادفع الآن",paidOk:"تم استلام الدفعة",
+ busAway:"دقائق متبقية",arriving:"تقترب من منزلك",arrived:"وصلت الحافلة",boarded:"صعد إلى الحافلة",atSchool:"وصل إلى المدرسة",homeBound:"صعد إلى حافلة العودة",simulate:"محاكاة حدث الحافلة التالي",
+ saved:"تم حفظ الحضور — تم إشعار أولياء أمور الغائبين",hwSent:"تم تعيين الواجب — تم إشعار أولياء الأمور",assign:"تعيين",subject:"المادة",title:"العنوان",dueDate:"تاريخ التسليم",present:"ح",absent:"غ",late:"ت",
+ newWO:"الإبلاغ عن مشكلة",category:"الفئة",location:"الموقع",priority:"الأولوية",desc:"الوصف",photo:"إرفاق صورة",create:"إنشاء أمر عمل",woCreated:"تم إنشاء أمر العمل",advance:"التالي",
+ inspect:"تفتيش رقمي",submitInsp:"إرسال التفتيش",inspOk:"تم تسجيل التفتيش",nextTreat:"المعالجة القادمة",asset:"الأصل",lastSvc:"آخر صيانة",nextSvc:"الصيانة القادمة",
+ ask:"اسأل عن الاختبارات أو الرسوم أو الحافلة أو الواجبات…",guide:"دليل العرض",reset:"إعادة ضبط العرض",sample:"بيانات تجريبية",thisIsDemo:"جميع الأسماء والأرقام والسجلات في هذا العرض بيانات تجريبية وهمية."}
 };
-let lang="en";const t=k=>{const p=k.split(".");let v=T[lang];for(const s of p)v=v?.[s];return v??k};
-const qr=n=>"QR "+n.toLocaleString(lang==="ar"?"ar-QA":"en-QA");
+let lang="en";const t=k=>{let v=T[lang];for(const s of k.split("."))v=v?.[s];return v??k};
+const A=(en,ar)=>lang==="ar"?ar:en;
+const qr=n=>"QR "+n.toLocaleString("en-QA");
 
-/* ---------- seed data ---------- */
-const S={
- role:"admin", page:"dash", childId:"ahmed", alert:null, paid:false, busStep:1, rsvp:null,
- kids:[
-  {id:"ahmed",name:{en:"Ahmed",ar:"أحمد"},grade:"5A",att:96,fee:{annual:18000,paid:12000,due:"15 Sep"},tt:["Mathematics","English","Science","Arabic","PE"],
-   hw:[{s:"Science",t:"Chapter 4 — Forces",d:"Sun 6 Sep"},{s:"Mathematics",t:"Fractions worksheet",d:"Mon 7 Sep"}],exams:[{s:"Mathematics",d:"18 Sep, 9:00 AM"},{s:"Arabic",d:"22 Sep, 9:00 AM"}]},
-  {id:"aisha",name:{en:"Aisha",ar:"عائشة"},grade:"2B",att:98,fee:{annual:14000,paid:14000,due:"—"},tt:["Arabic","Mathematics","English","Art","Islamic Studies"],
-   hw:[{s:"English",t:"Reading log — 3 pages",d:"Sun 6 Sep"}],exams:[{s:"English",d:"20 Sep, 8:30 AM"}]}],
- notifs:[{i:"📚",m:"New homework assigned — Science, Ahmed",w:"2h"},{i:"💰",m:"Fee instalment due 15 September",w:"1d"},{i:"📢",m:"Parent–Teacher Meeting, 10 September",w:"2d"}],
- roster:[{n:"Ahmed Al-Saleem",s:"p"},{n:"Mohammed Hassan",s:"p"},{n:"Sara Khalid",s:"a"},{n:"Ali Rashid",s:"p"},{n:"Fatima Nasser",s:"l"},{n:"Yousef Ibrahim",s:"p"}],
- wos:[{id:10482,cat:"HVAC",loc:"Block B / Room 204",pri:"high",st:"assigned",who:"Ravi K.",txt:"AC not cooling"},
-      {id:10481,cat:"Plumbing",loc:"Block A / Toilets G1",pri:"med",st:"progress",who:"Noel D.",txt:"Tap leaking"},
-      {id:10479,cat:"Electrical",loc:"Auditorium",pri:"low",st:"done",who:"Ravi K.",txt:"2 lights out"},
-      {id:10476,cat:"Furniture",loc:"Block C / Room 110",pri:"low",st:"verified",who:"Noel D.",txt:"Broken chair"}],
- clean:[{b:"Building A",a:[["Classrooms","ok"],["Toilets","ok"],["Canteen","warn"],["Playground","ok"]]},{b:"Building B",a:[["Classrooms","ok"],["Toilets","warn"],["Labs","ok"],["Corridors","ok"]]}],
- pest:[{loc:"Canteen & kitchen",last:"27 Aug",next:"10 Sep",prod:"Gel bait (cockroach)",tech:"Al-Waha PC"},{loc:"External perimeter",last:"20 Aug",next:"20 Sep",prod:"Residual spray",tech:"Al-Waha PC"},{loc:"Store rooms",last:"5 Aug",next:"5 Sep",prod:"Rodent stations",tech:"Al-Waha PC"}],
- assets:[{id:"AC-204",n:"AC unit — B/204",last:"15 Aug",next:"15 Sep",d:12},{id:"GEN-01",n:"Standby generator",last:"1 Jul",next:"1 Oct",d:28},{id:"FP-02",n:"Fire pump set",last:"10 Jun",next:"10 Sep",d:7},{id:"LIFT-A",n:"Elevator — Block A",last:"20 Aug",next:"20 Nov",d:78}],
- trend:[97.1,96.8,95.2,96.4,96.4]
-};
+/* ---------------- SAMPLE DATA ---------------- */
+function seed(){return{
+ role:"admin",page:"dash",childId:"S-2026-0417",alert:null,paidIds:[],busStep:1,rsvp:null,thread:0,
+ students:[
+  {id:"S-2026-0417",name:"Ahmed Saleem Al-Kuwari",ar:"أحمد سليم الكواري",grade:"5",sec:"A",dob:"12 Mar 2016",gender:"M",nat:"Qatari",qid:"31612345678",parent:"P-0231",bus:"12",att:96,feePlan:"3 instalments",annual:18000,paid:12000,due:"15 Sep 2026",blood:"O+",medical:"None",joined:"Sep 2021",house:"Al Wakra"},
+  {id:"S-2026-0418",name:"Aisha Saleem Al-Kuwari",ar:"عائشة سليم الكواري",grade:"2",sec:"B",dob:"5 Oct 2019",gender:"F",nat:"Qatari",qid:"31912345679",parent:"P-0231",bus:"12",att:98,feePlan:"Annual",annual:14000,paid:14000,due:"—",blood:"A+",medical:"Peanut allergy",joined:"Sep 2024",house:"Al Wakra"},
+  {id:"S-2026-0512",name:"Mohammed Hassan Farooq",ar:"محمد حسن فاروق",grade:"5",sec:"A",dob:"22 Jan 2016",gender:"M",nat:"Pakistani",qid:"31612398765",parent:"P-0288",bus:"7",att:94,feePlan:"Monthly",annual:18000,paid:9000,due:"15 Sep 2026",blood:"B+",medical:"Asthma (inhaler in clinic)",joined:"Sep 2022",house:"Al Sadd"},
+  {id:"S-2026-0533",name:"Sara Khalid Al-Mannai",ar:"سارة خالد المناعي",grade:"5",sec:"A",dob:"30 Jul 2016",gender:"F",nat:"Qatari",qid:"31612311223",parent:"P-0301",bus:"—",att:91,feePlan:"3 instalments",annual:18000,paid:13500,due:"1 Sep 2026",blood:"O-",medical:"None",joined:"Sep 2020",house:"West Bay"},
+  {id:"S-2026-0540",name:"Ali Rashid Ibrahim",ar:"علي راشد إبراهيم",grade:"5",sec:"A",dob:"9 Nov 2015",gender:"M",nat:"Egyptian",qid:"31512377889",parent:"P-0315",bus:"12",att:97,feePlan:"Annual",annual:18000,paid:6000,due:"15 Sep 2026",blood:"A-",medical:"None",joined:"Sep 2023",house:"Al Wakra"},
+  {id:"S-2026-0561",name:"Fatima Nasser Al-Thani",ar:"فاطمة ناصر آل ثاني",grade:"5",sec:"A",dob:"18 Feb 2016",gender:"F",nat:"Qatari",qid:"31612366554",parent:"P-0322",bus:"3",att:99,feePlan:"Annual",annual:18000,paid:18000,due:"—",blood:"AB+",medical:"None",joined:"Sep 2021",house:"Al Rayyan"},
+  {id:"S-2026-0574",name:"Yousef Ibrahim Mathew",ar:"يوسف إبراهيم ماثيو",grade:"5",sec:"A",dob:"3 Jun 2016",gender:"M",nat:"Indian",qid:"31612355443",parent:"P-0340",bus:"7",att:95,feePlan:"Monthly",annual:18000,paid:10500,due:"15 Sep 2026",blood:"B-",medical:"None",joined:"Sep 2022",house:"Al Sadd"},
+  {id:"S-2026-0590",name:"Layla Omar Haddad",ar:"ليلى عمر حداد",grade:"5",sec:"A",dob:"27 Aug 2016",gender:"F",nat:"Jordanian",qid:"31612344332",parent:"P-0355",bus:"3",att:93,feePlan:"3 instalments",annual:18000,paid:12000,due:"15 Sep 2026",blood:"O+",medical:"Wears glasses",joined:"Sep 2021",house:"Al Rayyan"}],
+ parentsList:[
+  {id:"P-0231",name:"Saleem Al-Kuwari",rel:"Father",phone:"+974 5512 3456",email:"saleem.k@example.qa",kids:2,lang:"Arabic",app:"Active"},
+  {id:"P-0288",name:"Hassan Farooq",rel:"Father",phone:"+974 5598 7654",email:"h.farooq@example.com",kids:1,lang:"English",app:"Active"},
+  {id:"P-0301",name:"Noora Al-Mannai",rel:"Mother",phone:"+974 3311 2233",email:"noora.m@example.qa",kids:1,lang:"Arabic",app:"Invited"},
+  {id:"P-0315",name:"Rashid Ibrahim",rel:"Father",phone:"+974 6677 8899",email:"rashid.i@example.com",kids:1,lang:"Arabic",app:"Active"},
+  {id:"P-0322",name:"Nasser Al-Thani",rel:"Father",phone:"+974 5566 5544",email:"n.althani@example.qa",kids:3,lang:"Arabic",app:"Active"},
+  {id:"P-0340",name:"Mary Mathew",rel:"Mother",phone:"+974 7755 4433",email:"mary.m@example.com",kids:1,lang:"English",app:"Not installed"}],
+ teachersList:[
+  {id:"T-014",name:"Mariam Al-Sulaiti",subj:"Mathematics / Science",classes:"5A, 5B, 4A",phone:"+974 5500 1122",email:"m.sulaiti@school.qa",joined:"2019",status:"Present"},
+  {id:"T-022",name:"James Whitfield",subj:"English",classes:"5A, 5B, 6A",phone:"+974 5500 2233",email:"j.whitfield@school.qa",joined:"2021",status:"Present"},
+  {id:"T-031",name:"Huda Mansour",subj:"Arabic / Islamic Studies",classes:"2B, 5A",phone:"+974 5500 3344",email:"h.mansour@school.qa",joined:"2017",status:"On leave"},
+  {id:"T-045",name:"Ravi Menon",subj:"PE",classes:"All primary",phone:"+974 5500 4455",email:"r.menon@school.qa",joined:"2020",status:"Present"},
+  {id:"T-052",name:"Lina Georges",subj:"Art",classes:"1A–3B",phone:"+974 5500 5566",email:"l.georges@school.qa",joined:"2023",status:"Present"}],
+ busesList:[
+  {no:"3",route:"Al Rayyan – Al Gharrafa",driver:"Sajid Ali",phone:"+974 3300 1111",cap:40,onboard:34,status:"On route",eta:"7:35",plate:"QA 214 883"},
+  {no:"7",route:"Al Sadd – Bin Mahmoud",driver:"Ramesh Kumar",phone:"+974 3300 2222",cap:32,onboard:28,status:"On route",eta:"7:40",plate:"QA 108 442"},
+  {no:"12",route:"Al Wakra – Al Wukair",driver:"Mahmoud Saeed",phone:"+974 3300 3333",cap:40,onboard:36,status:"Approaching",eta:"7:42",plate:"QA 331 907"},
+  {no:"15",route:"West Bay – Dafna",driver:"Anil Thomas",phone:"+974 3300 4444",cap:26,onboard:19,status:"At school",eta:"—",plate:"QA 077 215"},
+  {no:"21",route:"Lusail – Pearl",driver:"Faisal Nadeem",phone:"+974 3300 5555",cap:40,onboard:0,status:"Breakdown",eta:"—",plate:"QA 502 118"}],
+ anns:[
+  {t:"Parent–Teacher Meeting",d:"10 Sep 2026 · 3:00–6:00 PM · School Auditorium",aud:"All parents",lvl:"blue",yes:687,no:123,pend:438,rsvp:true},
+  {t:"Grade 5 Science Fair",d:"24 Sep 2026 · 9:00 AM · Block B Hall",aud:"Grade 5 parents",lvl:"blue",yes:112,no:9,pend:47,rsvp:true},
+  {t:"Bus route 21 delay",d:"Today · Bus 21 is delayed 25 minutes due to a mechanical fault. A replacement bus is on its way.",aud:"Bus route 21",lvl:"orange",rsvp:false},
+  {t:"Uniform policy reminder",d:"Winter uniform starts 1 October.",aud:"All parents",lvl:"yellow",rsvp:false}],
+ events:{2:["School reopens","ev2"],10:["PTM 3–6 PM"],15:["Fee instalment due","ev3"],18:["Maths exam G5"],20:["English exam G2"],22:["Arabic exam G5"],24:["Science Fair","ev2"],27:["National Sports Day prep","ev2"]},
+ documents:[
+  {n:"Fee receipt R-2026-0411",cat:"Receipt",date:"20 Apr 2026",for:"Ahmed"},{n:"Term 3 report card 2025-26",cat:"Exam report",date:"25 Jun 2026",for:"Ahmed"},
+  {n:"Term 3 report card 2025-26",cat:"Exam report",date:"25 Jun 2026",for:"Aisha"},{n:"Student ID certificate",cat:"Certificate",date:"3 Sep 2026",for:"Ahmed"},
+  {n:"Field trip permission — Katara",cat:"Permission form",date:"1 Sep 2026",for:"Aisha",action:"Sign"},{n:"Medical information update",cat:"Medical form",date:"28 Aug 2026",for:"Both",action:"Fill"},
+  {n:"School policies handbook 2026-27",cat:"Policy",date:"25 Aug 2026",for:"All"},{n:"Circular 12 — Winter uniform",cat:"Circular",date:"2 Sep 2026",for:"All"}],
+ threads:[
+  {with:"Ms. Mariam Al-Sulaiti (Maths, 5A)",about:"Ahmed",m:[{me:0,t:"Ahmed did very well in today's fractions quiz — 18/20.",w:"Tue"},{me:1,t:"Thank you! We'll keep practising at home.",w:"Tue"}]},
+  {with:"Mr. James Whitfield (English, 5A)",about:"Ahmed",m:[{me:1,t:"Ahmed will miss Thursday's class for a dental appointment.",w:"Mon"},{me:0,t:"Noted, I'll share the reading pages with him.",w:"Mon"}]},
+  {with:"Ms. Huda Mansour (Arabic, 2B)",about:"Aisha",m:[{me:0,t:"Reminder: Aisha's Arabic reading book is due back Sunday.",w:"Sun"}]}],
+ notifs:[{i:"📚",m:"New homework — Science, Ahmed (due Sun 6 Sep)",w:"2h"},{i:"🚌",m:"Bus #12 is 8 minutes away",w:"now"},{i:"💰",m:"Fee instalment QR 6,000 due 15 September",w:"1d"},{i:"📢",m:"Parent–Teacher Meeting — 10 September",w:"2d"},{i:"📄",m:"Field trip permission form needs your signature",w:"2d"},{i:"📊",m:"Ahmed marked present — 7:44 AM",w:"3d"}],
+ tt:{"5":["Mathematics","English","Science","Arabic","PE","Islamic Studies"],"2":["Arabic","Mathematics","English","Art","Islamic Studies","Music"]},
+ hw:[{sid:"S-2026-0417",s:"Science",t:"Chapter 4 — Forces, Q1–10",d:"Sun 6 Sep",by:"Ms. Mariam",st:"Pending"},{sid:"S-2026-0417",s:"Mathematics",t:"Fractions worksheet 3",d:"Mon 7 Sep",by:"Ms. Mariam",st:"Pending"},{sid:"S-2026-0417",s:"English",t:"Book review — 200 words",d:"Wed 2 Sep",by:"Mr. James",st:"Submitted"},{sid:"S-2026-0418",s:"English",t:"Reading log — 3 pages",d:"Sun 6 Sep",by:"Ms. Lina",st:"Pending"},{sid:"S-2026-0418",s:"Arabic",t:"Letter tracing — ص ض",d:"Thu 3 Sep",by:"Ms. Huda",st:"Submitted"}],
+ exams:[{sid:"S-2026-0417",s:"Mathematics",d:"18 Sep 2026, 9:00 AM",room:"Hall A",syl:"Ch. 1–4"},{sid:"S-2026-0417",s:"Arabic",d:"22 Sep 2026, 9:00 AM",room:"Room 204",syl:"Units 1–3"},{sid:"S-2026-0418",s:"English",d:"20 Sep 2026, 8:30 AM",room:"Room 110",syl:"Phonics set 2"}],
+ results:[{sid:"S-2026-0417",term:"Term 3, 2025-26",rows:[["Mathematics",92,"A"],["English",85,"A"],["Science",88,"A"],["Arabic",79,"B"],["Islamic Studies",90,"A"],["PE",95,"A"]],avg:88.2,rank:"4 / 32"},
+          {sid:"S-2026-0418",term:"Term 3, 2025-26",rows:[["Arabic",94,"A"],["Mathematics",89,"A"],["English",91,"A"],["Art",97,"A"],["Islamic Studies",93,"A"]],avg:92.8,rank:"2 / 28"}],
+ attLog:{"S-2026-0417":["P","P","P","L","P","P","P","A","P","P","P","P","P","P","P","P","P","A","P","P"],"S-2026-0418":["P","P","P","P","P","P","P","P","P","P","P","P","P","P","P","P","P","P","P","P"]},
+ roster:[["S-2026-0417","p"],["S-2026-0512","p"],["S-2026-0533","a"],["S-2026-0540","p"],["S-2026-0561","l"],["S-2026-0574","p"],["S-2026-0590","p"]],
+ marks:[["S-2026-0417",18],["S-2026-0512",15],["S-2026-0533",""],["S-2026-0540",16],["S-2026-0561",20],["S-2026-0574",14],["S-2026-0590",17]],
+ mats:[{s:"Science",t:"Forces & motion — slides",type:"PDF · 2.1 MB",d:"1 Sep"},{s:"Mathematics",t:"Fractions — video lesson",type:"Video · 12 min",d:"31 Aug"},{s:"Science",t:"Lab safety checklist",type:"PDF · 0.4 MB",d:"25 Aug"}],
+ wos:[{id:10484,cat:"HVAC",loc:"Block B / Room 204",pri:"high",st:"assigned",who:"Ravi K. (Cool Air Services)",txt:"AC not cooling, room at 29°C",by:"Ms. Mariam",on:"3 Sep 07:20",sla:"4h",photo:true},
+      {id:10483,cat:"Plumbing",loc:"Block A / Toilets G1",pri:"med",st:"progress",who:"Noel D. (in-house)",txt:"Tap leaking continuously",by:"Cleaning supervisor",on:"2 Sep 14:05",sla:"24h",photo:true},
+      {id:10482,cat:"Electrical",loc:"Auditorium",pri:"low",st:"done",who:"Ravi K.",txt:"2 ceiling lights out",by:"Admin office",on:"1 Sep 09:40",sla:"72h",photo:false},
+      {id:10481,cat:"Playground",loc:"Primary playground",pri:"high",st:"new",who:"—",txt:"Swing chain frayed — safety risk",by:"Mr. Ravi Menon",on:"3 Sep 08:10",sla:"4h",photo:true},
+      {id:10479,cat:"Furniture",loc:"Block C / Room 110",pri:"low",st:"verified",who:"Noel D.",txt:"Broken chair",by:"Ms. Lina",on:"28 Aug 11:00",sla:"72h",photo:false},
+      {id:10477,cat:"CCTV",loc:"Gate 2",pri:"med",st:"verified",who:"SecureTech",txt:"Camera 14 offline",by:"Security",on:"26 Aug 16:30",sla:"24h",photo:false}],
+ assets:[{id:"AC-204",n:"Split AC 2.5 TR — B/204",cat:"HVAC",inst:"2024",vendor:"Cool Air Services",last:"15 Aug 2026",next:"15 Sep 2026",d:12,cond:"Fair"},
+  {id:"AC-205",n:"Split AC 2.5 TR — B/205",cat:"HVAC",inst:"2024",vendor:"Cool Air Services",last:"15 Aug 2026",next:"15 Sep 2026",d:12,cond:"Good"},
+  {id:"GEN-01",n:"Standby generator 250 kVA",cat:"Electrical",inst:"2019",vendor:"Gulf Power",last:"1 Jul 2026",next:"1 Oct 2026",d:28,cond:"Good"},
+  {id:"FP-02",n:"Fire pump set",cat:"Fire system",inst:"2018",vendor:"SafeGuard FLS",last:"10 Jun 2026",next:"10 Sep 2026",d:7,cond:"Good"},
+  {id:"FA-01",n:"Fire alarm panel — Block A",cat:"Fire system",inst:"2018",vendor:"SafeGuard FLS",last:"10 Jun 2026",next:"10 Sep 2026",d:7,cond:"Good"},
+  {id:"LIFT-A",n:"Passenger lift — Block A",cat:"Elevator",inst:"2018",vendor:"Otis Qatar",last:"20 Aug 2026",next:"20 Nov 2026",d:78,cond:"Good"},
+  {id:"WP-01",n:"Water booster pump",cat:"Plumbing",inst:"2020",vendor:"Gulf Power",last:"5 Aug 2026",next:"5 Nov 2026",d:63,cond:"Good"},
+  {id:"PG-03",n:"Playground swing set",cat:"Playground",inst:"2022",vendor:"PlayCo",last:"1 Jun 2026",next:"1 Sep 2026",d:-2,cond:"Poor"},
+  {id:"CCTV-14",n:"CCTV camera — Gate 2",cat:"CCTV",inst:"2021",vendor:"SecureTech",last:"26 Aug 2026",next:"26 Nov 2026",d:84,cond:"Good"}],
+ clean:[{b:"Building A",a:[["Classrooms (12)","ok","7:10"],["Toilets G1–G2","ok","6:50"],["Canteen","warn","—"],["Playground","ok","6:30"],["Staff room","ok","7:00"]]},
+        {b:"Building B",a:[["Classrooms (10)","ok","7:05"],["Toilets B1","warn","—"],["Science labs","ok","6:45"],["Corridors","ok","6:40"],["Auditorium","ok","6:20"]]}],
+ inspections:[{area:"Building A / Toilets G1",by:"Supervisor Anita",on:"3 Sep 06:55",score:"5/5"},{area:"Building B / Labs",by:"Supervisor Anita",on:"3 Sep 06:48",score:"5/5"},{area:"Building A / Canteen",by:"Supervisor Anita",on:"2 Sep 14:10",score:"4/5"}],
+ pest:[{loc:"Canteen & kitchen",last:"27 Aug 2026",next:"10 Sep 2026",prod:"Gel bait (cockroach) — Maxforce",tech:"Al-Waha Pest Control",res:"No activity"},
+       {loc:"External perimeter",last:"20 Aug 2026",next:"20 Sep 2026",prod:"Residual spray — Deltamethrin",tech:"Al-Waha Pest Control",res:"Ant trails, treated"},
+       {loc:"Store rooms",last:"5 Aug 2026",next:"5 Sep 2026",prod:"Rodent bait stations (6)",tech:"Al-Waha Pest Control",res:"1 station activity"},
+       {loc:"Drains & manholes",last:"15 Aug 2026",next:"15 Sep 2026",prod:"Larvicide",tech:"Al-Waha Pest Control",res:"Clear"}],
+ contractors:[{n:"Cool Air Services",svc:"HVAC AMC",contract:"1 Jan – 31 Dec 2026",value:"QR 96,000 / yr",contact:"Ravi Kumar · +974 5511 0001",sla:"4h critical",rating:"4.6"},
+  {n:"Al-Waha Pest Control",svc:"Pest control (monthly)",contract:"1 Sep 2026 – 31 Aug 2027",value:"QR 18,000 / yr",contact:"Bilal Ahmed · +974 5511 0002",sla:"48h callout",rating:"4.2"},
+  {n:"CleanPro Facilities",svc:"Cleaning (42 staff)",contract:"1 Sep 2025 – 31 Aug 2027",value:"QR 540,000 / yr",contact:"Anita Fernandes · +974 5511 0003",sla:"Daily 6–8 AM",rating:"4.4"},
+  {n:"SafeGuard FLS",svc:"Fire & life safety AMC",contract:"1 Mar 2026 – 28 Feb 2027",value:"QR 42,000 / yr",contact:"Omar Zaki · +974 5511 0004",sla:"2h critical",rating:"4.8"},
+  {n:"Otis Qatar",svc:"Lift maintenance",contract:"1 Jan – 31 Dec 2026",value:"QR 24,000 / yr",contact:"Service desk · 800 6847",sla:"2h entrapment",rating:"4.5"}],
+ trend:[97.1,96.8,95.2,96.4,96.4],
+ chat:[]
+}}
+let S=seed();
 const STEPS=["new","assigned","progress","done","verified"];
-const NAV={admin:[["dash","▦","dash"],["ann","📢","announcements"],["fees","💰","fees"]],
- parent:[["home","⌂","children"],["bus","🚌","bus"],["fees","💰","fees"],["ai","✦","assistant"]],
- teacher:[["classes","▦","myClasses"],["att","✓","markAtt"],["hw","📚","addHw"]],
- fm:[["wo","🛠","workOrders"],["clean","🧹","cleaning"],["pest","🐜","pest"],["pm","🔧","pm"]]};
+const NAV={admin:[["dash","▦","dash"],["students","👥","students"],["parents","👨‍👩‍👧","parents"],["teachers","👩‍🏫","teachers"],["transport","🚌","transport"],["ann","📢","ann"],["calendar","📅","calendar"],["fees","💰","fees"],["docs","📄","docs"],["reports","📊","reports"],["settings","⚙","settings"]],
+ parent:[["home","⌂","home"],["attendance","📊","attendance"],["homework","📚","homework"],["results","🏆","results"],["calendar","📅","calendar"],["ann","📢","ann"],["fees","💰","fees"],["bus","🚌","bus"],["messages","💬","messages"],["docs","📄","docs"],["report","🔧","report"],["notifs","🔔","notifs"],["ai","✦","ai"]],
+ teacher:[["classes","▦","classes"],["timetable","📅","timetable"],["att","✓","att"],["hw","📚","hw"],["materials","📁","materials"],["marks","📝","marks"],["ann","📢","ann"],["messages","💬","messages"]],
+ fm:[["wo","🛠","wo"],["assets","📦","assets"],["pm","🔧","pm"],["clean","🧹","clean"],["pest","🐜","pest"],["contractors","🤝","contractors"]]};
 
-/* ---------- helpers ---------- */
-function toast(t1,t2){const d=document.createElement("div");d.className="toast";d.innerHTML=`<b>${t1}</b>${t2||""}`;toasts.appendChild(d);setTimeout(()=>d.remove(),4200)}
-function pushNotif(i,m){S.notifs.unshift({i,m,w:lang==="ar"?"الآن":"now"})}
-function setLang(l){lang=l;document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr";btnEn.classList.toggle("on",l==="en");btnAr.classList.toggle("on",l==="ar");render()}
+/* ---------------- helpers ---------------- */
+const $=id=>document.getElementById(id);
+function toast(a,b){const d=document.createElement("div");d.className="toast";d.innerHTML=`<b>${a}</b>${b||""}`;$("toasts").appendChild(d);setTimeout(()=>d.remove(),4500)}
+function pushNotif(i,m){S.notifs.unshift({i,m,w:A("now","الآن")})}
+function setLang(l){lang=l;document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr";$("btnEn").classList.toggle("on",l==="en");$("btnAr").classList.toggle("on",l==="ar");render()}
 function setRole(r){S.role=r;S.page=NAV[r][0][0];render()}
 function go(p){S.page=p;render()}
-function pill(s){const m={ok:"ok",warn:"warn",bad:"bad",high:"bad",med:"warn",low:"neut",new:"info",assigned:"info",progress:"warn",done:"ok",verified:"ok"};return m[s]||"neut"}
-/* ---------- render ---------- */
+function pill(s){return{ok:"ok",warn:"warn",bad:"bad",high:"bad",med:"warn",low:"neut",new:"info",assigned:"info",progress:"warn",done:"ok",verified:"ok",Present:"ok","On leave":"warn",Active:"ok",Invited:"warn","Not installed":"neut","On route":"info",Approaching:"warn","At school":"ok",Breakdown:"bad",Good:"ok",Fair:"warn",Poor:"bad",Pending:"warn",Submitted:"ok"}[s]||"neut"}
+function head(a,b){$("pageTitle").textContent=a;$("pageSub").textContent=b||""}
+function tbl(cols,rows){return `<table><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table>`}
+function modalOpen(html,wide){$("modalBox").className="box"+(wide?" wide":"");$("modalBox").innerHTML=html+`<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="modalClose()">${t("close")}</button></div>`;$("modal").classList.add("open")}
+function modalClose(){$("modal").classList.remove("open")}
+const stu=id=>S.students.find(s=>s.id===id);
+const kid=()=>stu(S.childId);
+const kidName=s=>lang==="ar"?s.ar.split(" ")[0]:s.name.split(" ")[0];
+const dueOf=s=>s.annual-s.paid-(S.paidIds.includes(s.id)?6000:0);
+
 function render(){
-  document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));
-  roleTabs.innerHTML=["admin","parent","teacher","fm"].map(r=>`<button class="${S.role===r?"on":""}" onclick="setRole('${r}')">${t(r)}</button>`).join("");
-  roleLbl.textContent=t(S.role);
-  navList.innerHTML=NAV[S.role].map(([p,ic,k])=>`<button class="nav ${S.page===p?"on":""}" onclick="go('${p}')"><span class="ic">${ic}</span>${t(k)}</button>`).join("");
-  banner.innerHTML=S.alert?`<div class="banner"><span>🚨 ${t("lvl."+S.alert)} — ${t("alertLive")}</span>${S.role==="admin"?`<button class="btn sm" onclick="S.alert=null;render()">${t("cancelAlert")}</button>`:""}</div>`:"";
-  const fn={admin:vAdmin,parent:vParent,teacher:vTeacher,fm:vFM}[S.role];
-  view.innerHTML=fn();
+  $("roleTabs").innerHTML=["admin","parent","teacher","fm"].map(r=>`<button class="${S.role===r?"on":""}" onclick="setRole('${r}')">${t(r)}</button>`).join("");
+  $("roleLbl").textContent=t(S.role);
+  $("navList").innerHTML=NAV[S.role].map(([p,ic,k])=>`<button class="nav ${S.page===p?"on":""}" onclick="go('${p}')"><span class="ic">${ic}</span>${t(k)}</button>`).join("");
+  $("banner").innerHTML=S.alert?`<div class="banner"><span>🚨 ${t("lvl."+S.alert)} — ${t("alertLive")}</span>${S.role==="admin"?`<button class="btn sm" onclick="S.alert=null;render()">${t("cancelAlert")}</button>`:""}</div>`:"";
+  $("view").innerHTML={admin:vAdmin,parent:vParent,teacher:vTeacher,fm:vFM}[S.role]();
+  $("guideBtns").innerHTML=`<button class="btn sm" onclick="showGuide()">ⓘ ${t("guide")}</button> <button class="btn sm" onclick="S=seed();render();toast('${t("reset")}')">${t("reset")}</button>`;
 }
-function head(title,sub){pageTitle.textContent=title;pageSub.textContent=sub||""}
-
-/* ===== ADMIN ===== */
+/* ================= ADMIN ================= */
 function vAdmin(){
-  const open=S.wos.filter(w=>w.st!=="verified").length;
-  const pestSoon=S.pest.length;
-  if(S.page==="ann")return vAnnAdmin();
-  if(S.page==="fees")return vFeesAdmin();
-  head(`${t("goodMorning")}, ${lang==="ar"?"مدير المدرسة":"Principal"}`,t("today")+" · "+(lang==="ar"?"الخميس ٣ سبتمبر ٢٠٢٦":"Thursday, 3 September 2026"));
-  const tiles=[
-   ["students","1,248",""],["teachers","126",""],["attendance","96.4%","",96.4],["buses","24",lang==="ar"?"٢٤ في الخدمة":"24 on route"],
-   ["maint",open,t("open")],["cleaning","94%","",94],["fees","QR 485K","124 "+(lang==="ar"?"أسرة":"families")],["pest",pestSoon,t("upcoming")]];
-  return `<div class="board">
-   ${tiles.map(([k,v,d,bar])=>`<div class="tile" onclick="toast('${t(k)}','${lang==="ar"?"فتح التفاصيل":"Drill-down view"}')"><div class="k">${t(k)}</div><div class="v">${v}</div>${d?`<div class="d muted">${d}</div>`:""}${bar?`<div class="bar"><i style="width:${bar}%"></i></div>`:""}</div>`).join("")}
-   <div class="tile wide alert ${S.alert?"hot":""}" onclick="openAlert()"><div class="k">${t("emergency")}</div><div class="v">${S.alert?"1":"0"}</div><div class="d"><span class="btn sm danger">🚨 ${t("sendAlert")}</span></div></div>
-  </div>
-  <div class="grid g2" style="margin-top:14px">
-   <div class="panel"><h2>${t("trend")}</h2><div class="trend" style="margin-top:20px">${S.trend.map((v,i)=>`<div><small>${v}%</small><i style="height:${(v-90)*10}%"></i></div>`).join("")}</div><div class="row small muted" style="justify-content:space-between;margin-top:6px"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span></div></div>
-   <div class="panel"><h2>${t("recentWO")} <button class="btn sm" onclick="setRole('fm')">${t("fm")} →</button></h2>
-    <table><tr><th>#</th><th>${t("category")}</th><th>${t("location")}</th><th>${t("status.new").split(" ")[0]?"":""}${lang==="ar"?"الحالة":"Status"}</th></tr>
-    ${S.wos.slice(0,4).map(w=>`<tr><td class="muted">${w.id}</td><td>${w.cat}</td><td>${w.loc}</td><td><span class="tag ${pill(w.st)}">${t("status."+w.st)}</span></td></tr>`).join("")}</table></div>
-  </div>`;
+  const p=S.page;
+  if(p==="students")return vStudents();if(p==="parents")return vParents();if(p==="teachers")return vTeachers();if(p==="transport")return vTransport();
+  if(p==="ann")return vAnn(true);if(p==="calendar")return vCal();if(p==="fees")return vFeesAdmin();if(p==="docs")return vDocs(true);if(p==="reports")return vReports();if(p==="settings")return vSettings();
+  head(`${t("goodMorning")}, ${A("Principal","مدير المدرسة")}`,t("today"));
+  const open=S.wos.filter(w=>w.st!=="verified").length,pend=S.assets.filter(a=>a.d<=14).length;
+  const tiles=[["students","1,248",A("+12 this term","+١٢ هذا الفصل")],["teachers","126",A("3 on leave","٣ في إجازة")],["attendance","96.4%","",96.4],["buses","24",A("1 breakdown","عطل واحد")],["maint",open,t("open")],["cleaning","94%","",94],["outstanding","QR 485,200",A("124 families","١٢٤ أسرة")],["pest","3",t("upcoming")]];
+  return `<div class="board">${tiles.map(([k,v,d,bar])=>`<div class="tile" onclick="go('${{maint:"students",cleaning:"students",outstanding:"fees",pest:"students",buses:"transport",teachers:"teachers",attendance:"reports"}[k]||"students"}')"><div class="k">${t(k)}</div><div class="v">${v}</div>${d?`<div class="d muted">${d}</div>`:""}${bar?`<div class="bar"><i style="width:${bar}%"></i></div>`:""}</div>`).join("")}
+   <div class="tile wide alert ${S.alert?"hot":""}" onclick="openAlert()"><div class="k">${t("emergency")}</div><div class="v">${S.alert?"1":"0"}</div><div class="d"><span class="btn sm danger">🚨 ${t("sendAlert")}</span></div></div></div>
+  <div class="grid g3" style="margin-top:14px">
+   <div class="panel"><h2>${t("trend")}</h2><div class="trend" style="margin-top:20px">${S.trend.map(v=>`<div><small>${v}%</small><i style="height:${(v-90)*10}%"></i></div>`).join("")}</div><div class="row small muted" style="justify-content:space-between;margin-top:6px"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span></div></div>
+   <div class="panel"><h2>${t("wo")} <span class="link" onclick="setRole('fm')">${t("fm")} →</span></h2>${tbl(["#",t("category"),t("location"),A("Status","الحالة")],S.wos.slice(0,4).map(w=>[`<span class="muted">${w.id}</span>`,w.cat,w.loc,`<span class="tag ${pill(w.st)}">${t("status."+w.st)}</span>`]))}</div>
+   <div class="panel"><h2>${A("Today's alerts","تنبيهات اليوم")}</h2><div class="list">
+    <div><span>🚌 Bus 21 breakdown — replacement dispatched</span><span class="tag bad">${t("high")}</span></div>
+    <div><span>🛝 Playground swing — safety work order #10481</span><span class="tag bad">${t("high")}</span></div>
+    <div><span>🔧 Fire pump PPM due in 7 days</span><span class="tag warn">${t("med")}</span></div>
+    <div><span>💰 14 fee instalments overdue (1 Sep)</span><span class="tag warn">${t("med")}</span></div>
+    <div><span>👩‍🏫 Ms. Huda on leave — 2B Arabic cover needed</span><span class="tag info">${t("low")}</span></div></div></div></div>`;
 }
-function vAnnAdmin(){head(t("announcements"),lang==="ar"?"قناة واحدة بدل مجموعات واتساب":"One channel instead of WhatsApp groups");
- return `<div class="grid g2"><div class="panel"><h2>Parent–Teacher Meeting</h2><p>10 September · 3:00–6:00 PM · School Auditorium</p>
- <div class="fee"><div><span class="small muted">✅ ${t("confirmed")}</span><b>${687+(S.rsvp?1:0)}</b></div><div><span class="small muted">❌ ${t("declined")}</span><b>123</b></div><div><span class="small muted">⏳ ${t("pending")}</span><b>${438-(S.rsvp?1:0)}</b></div></div></div>
- <div class="panel"><h2>${lang==="ar"?"إعلان جديد":"New announcement"}</h2><div class="field"><label>${t("title")}</label><input placeholder="Sports Day 2026"></div><div class="field"><label>${t("message")}</label><textarea rows="3"></textarea></div><div class="row"><select class="btn"><option>All parents</option><option>Grade 5</option><option>Bus route 4</option></select><button class="btn p" onclick="toast('${lang==="ar"?"تم إرسال الإعلان":"Announcement sent"}','1,248 '+(lang==='ar'?'أسرة':'families'))">${t("send")}</button></div></div></div>`}
-function vFeesAdmin(){head(t("fees"),"");
- const rows=[["Al-Saleem",S.paid?0:6000,"15 Sep"],["Hassan",9000,"15 Sep"],["Khalid",4500,"1 Sep"],["Rashid",12000,"15 Sep"]];
- return `<div class="panel"><table><tr><th>${lang==="ar"?"الأسرة":"Family"}</th><th>${t("due")}</th><th>${t("nextInst")}</th><th></th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td><b>${qr(r[1])}</b></td><td>${r[2]}</td><td>${r[1]?`<span class="tag ${r[2]==="1 Sep"?"bad":"warn"}">${r[2]==="1 Sep"?(lang==="ar"?"متأخر":"Overdue"):t("pending")}</span>`:`<span class="tag ok">${t("paid")}</span>`}</td></tr>`).join("")}</table></div>`}
-function openAlert(){let lvl="red";const box=modalBox;const draw=()=>{box.innerHTML=`<h2>${t("selectLevel")}</h2><div class="lvls">${["red","orange","yellow","blue"].map(l=>`<button class="${lvl===l?"on":""}" data-l="${l}"><span class="dot" style="background:${{red:"#B42323",orange:"#E07A1F",yellow:"#D6A81B",blue:"#1F5FA8"}[l]}"></span>${t("lvl."+l)}</button>`).join("")}</div><div class="field"><label>${t("message")}</label><textarea rows="3">${t("alertMsg")}</textarea></div><div class="row" style="justify-content:flex-end"><button class="btn" onclick="modal.classList.remove('open')">${t("cancel")}</button><button class="btn danger" id="fire">${t("send")}</button></div>`;
-  box.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lvl=b.dataset.l;draw()});box.querySelector("#fire").onclick=()=>{S.alert=lvl;pushNotif("🚨",t("alertMsg"));modal.classList.remove("open");toast(t("lvl."+lvl),t("alertLive"));render()}};draw();modal.classList.add("open")}
+function vStudents(){head(t("students"),A("1,248 enrolled · showing Grade 5A sample","١٢٤٨ مسجل · عينة الصف 5A"));
+ return `<div class="row" style="justify-content:space-between;margin-bottom:12px"><div class="row"><input class="search" placeholder="${t("search")}"><select class="btn"><option>${A("All grades","كل الصفوف")}</option><option>KG</option><option>Grade 1</option><option>Grade 5</option></select><select class="btn"><option>${t("section")} A</option><option>B</option></select></div><button class="btn p" onclick="modalOpen(addStudentForm(),true)">+ ${t("addStudent")}</button></div>
+ <div class="panel">${tbl(["ID",A("Name","الاسم"),t("grade"),A("Nationality","الجنسية"),A("Parent","ولي الأمر"),t("bus"),t("attendance"),t("due"),""],S.students.map(s=>[`<span class="muted">${s.id}</span>`,`<b>${lang==="ar"?s.ar:s.name}</b>`,`${s.grade}${s.sec}`,s.nat,S.parentsList.find(p=>p.id===s.parent)?.name||s.parent,s.bus,`<span class="tag ${s.att>=95?"ok":s.att>=92?"warn":"bad"}">${s.att}%</span>`,dueOf(s)?`<b>${qr(dueOf(s))}</b>`:`<span class="tag ok">${t("paid")}</span>`,`<span class="link" onclick="profile('${s.id}')">${t("viewProfile")}</span>`]))}</div>`}
+function profile(id){const s=stu(id),p=S.parentsList.find(x=>x.id===s.parent);
+ modalOpen(`<h2>${s.name} <span class="muted small">${s.ar}</span></h2><div class="grid g2" style="margin-top:12px"><div class="kv">
+ <span>Student ID</span><span>${s.id}</span><span>${t("grade")} / ${t("section")}</span><span>${s.grade}${s.sec}</span><span>Date of birth</span><span>${s.dob}</span><span>Gender</span><span>${s.gender==="M"?"Male":"Female"}</span><span>Nationality</span><span>${s.nat}</span><span>QID</span><span>${s.qid}</span><span>Joined</span><span>${s.joined}</span><span>Home area</span><span>${s.house}</span></div>
+ <div class="kv"><span>Parent</span><span>${p?.name} (${p?.rel})</span><span>Phone</span><span>${p?.phone}</span><span>Email</span><span>${p?.email}</span><span>Bus</span><span>${s.bus==="—"?"Private transport":"Bus #"+s.bus}</span><span>Blood group</span><span>${s.blood}</span><span>Medical notes</span><span>${s.medical}</span><span>Fee plan</span><span>${s.feePlan}</span><span>Outstanding</span><span><b>${qr(dueOf(s))}</b> · ${s.due}</span></div></div>
+ <h3 style="margin:14px 0 6px">${t("attendance")} — ${A("last 20 school days","آخر ٢٠ يوماً")}</h3><div class="row">${(S.attLog[id]||"PPPPPPPPPPPPPPPPPPPP".split("")).map(a=>`<span class="tag ${a==="P"?"ok":a==="A"?"bad":"warn"}">${a}</span>`).join("")}</div>`,true)}
+function addStudentForm(){return `<h2>${t("addStudent")}</h2><div class="grid g2" style="margin-top:10px">${[["Full name (English)","Aisha Ahmed Al-Naimi"],["Full name (Arabic)","عائشة أحمد النعيمي"],["Date of birth","2016-04-14"],["Gender","Female"],["Nationality","Qatari"],["QID","316xxxxxxxx"],["Grade / Section","5 / B"],["Parent ID or phone","+974 5xxx xxxx"],["Bus route","12 — Al Wakra"],["Fee plan","3 instalments"],["Blood group","O+"],["Medical notes","None"]].map(([l,v])=>`<div class="field"><label>${l}</label><input value="${v}"></div>`).join("")}</div><button class="btn p" onclick="modalClose();toast('${A("Student added","تمت إضافة الطالب")}','S-2026-0603 · Grade 5B · parent invited to app')">${t("save")}</button>`}
+function vParents(){head(t("parents"),A("1,031 families · 92% app activation","١٠٣١ أسرة · ٩٢٪ تفعيل التطبيق"));
+ return `<div class="mini"><div><span class="small muted">Families</span><b>1,031</b></div><div><span class="small muted">App active</span><b>948</b></div><div><span class="small muted">Invited, not installed</span><b>61</b></div><div><span class="small muted">Prefer Arabic</span><b>58%</b></div></div>
+ <div class="row" style="margin-bottom:12px"><input class="search" placeholder="${t("search")}"><button class="btn" onclick="toast('${A("Invitations sent","تم إرسال الدعوات")}','61 SMS + email')">${A("Re-invite pending parents","إعادة دعوة المتبقين")}</button></div>
+ <div class="panel">${tbl(["ID",A("Name","الاسم"),A("Relation","الصلة"),A("Phone","الهاتف"),"Email",A("Children","الأبناء"),A("Language","اللغة"),A("App","التطبيق")],S.parentsList.map(p=>[`<span class="muted">${p.id}</span>`,`<b>${p.name}</b>`,p.rel,p.phone,p.email,p.kids,p.lang,`<span class="tag ${pill(p.app)}">${p.app}</span>`]))}</div>`}
+function vTeachers(){head(t("teachers"),A("126 staff · 3 on leave today","١٢٦ موظفاً · ٣ في إجازة اليوم"));
+ return `<div class="row" style="margin-bottom:12px"><input class="search" placeholder="${t("search")}"><button class="btn p" onclick="toast('${A("Teacher form opened","فتح نموذج المعلم")}')">+ ${A("Add teacher","إضافة معلم")}</button></div>
+ <div class="panel">${tbl(["ID",A("Name","الاسم"),A("Subjects","المواد"),A("Classes","الصفوف"),A("Phone","الهاتف"),"Email",A("Joined","الانضمام"),A("Today","اليوم")],S.teachersList.map(x=>[`<span class="muted">${x.id}</span>`,`<b>${x.name}</b>`,x.subj,x.classes,x.phone,x.email,x.joined,`<span class="tag ${pill(x.status)}">${x.status}</span>`]))}</div>`}
+function vTransport(){head(t("transport"),A("24 buses · 18 routes · 812 students on transport","٢٤ حافلة · ١٨ مساراً · ٨١٢ طالباً"));
+ return `<div class="mini"><div><span class="small muted">On route</span><b>19</b></div><div><span class="small muted">At school</span><b>4</b></div><div><span class="small muted">Breakdown / delayed</span><b style="color:var(--bad)">1</b></div><div><span class="small muted">Boarded this morning</span><b>794 / 812</b></div></div>
+ <div class="panel">${tbl([t("bus"),A("Route","المسار"),A("Driver","السائق"),A("Phone","الهاتف"),A("Plate","اللوحة"),A("Onboard","على متنها"),"ETA",A("Status","الحالة"),""],S.busesList.map(b=>[`<b>#${b.no}</b>`,b.route,b.driver,b.phone,b.plate,`${b.onboard}/${b.cap}`,b.eta,`<span class="tag ${pill(b.status)}">${b.status}</span>`,`<span class="link" onclick="toast('Bus #${b.no}','${A("Live GPS map — Phase 2","خريطة GPS مباشرة — المرحلة ٢")}')">${A("Track","تتبع")}</span>`]))}</div>
+ <p class="small muted" style="margin-top:8px">🔔 ${A("Parents on route 21 were notified automatically at 7:12 AM about the delay.","تم إشعار أولياء أمور المسار ٢١ تلقائياً الساعة ٧:١٢ بالتأخير.")}</p>`}
+function vAnn(admin){head(t("ann"),A("One channel instead of WhatsApp groups","قناة واحدة بدل مجموعات واتساب"));
+ const colors={red:"bad",orange:"warn",yellow:"warn",blue:"info"};
+ const list=S.anns.map((a,i)=>`<div class="panel" style="margin-bottom:10px"><div class="row" style="justify-content:space-between"><h3>${a.t}</h3><span class="tag ${colors[a.lvl]}">${t("lvl."+a.lvl)}</span></div><p class="small">${a.d}</p><div class="small muted">${A("Audience","الجمهور")}: ${a.aud}</div>
+  ${a.rsvp?admin?`<div class="fee" style="margin-top:10px"><div><span class="small muted">✅ ${t("confirmed")}</span><b>${a.yes+(S.rsvp===i?1:0)}</b></div><div><span class="small muted">❌ ${t("declined")}</span><b>${a.no}</b></div><div><span class="small muted">⏳ ${t("pending")}</span><b>${a.pend-(S.rsvp===i?1:0)}</b></div></div>`
+   :(S.rsvp===i?`<span class="tag ok" style="margin-top:8px">${t("rsvpOk")}</span>`:`<div class="row" style="margin-top:8px"><button class="btn sm p" onclick="S.rsvp=${i};toast('${t("rsvpOk")}');render()">${t("rsvp")}</button><button class="btn sm">${A("Can't attend","لا أستطيع الحضور")}</button></div>`):""}</div>`).join("");
+ if(!admin)return list;
+ return `<div class="grid g2" style="grid-template-columns:1.3fr 1fr"><div>${list}</div><div class="panel"><h2>${A("New announcement","إعلان جديد")}</h2>
+  <div class="field"><label>${t("title")}</label><input id="anT" value="National Sports Day — early dismissal"></div><div class="field"><label>${t("message")}</label><textarea id="anM" rows="3">School closes at 12:00 PM on Tuesday 9 February. Buses depart at 12:15.</textarea></div>
+  <div class="field"><label>${A("Audience","الجمهور")}</label><select id="anA"><option>All parents</option><option>Grade 5 parents</option><option>Bus route 12</option><option>Teachers</option></select></div>
+  <div class="field"><label>${A("Level","المستوى")}</label><select id="anL"><option value="blue">${t("lvl.blue")}</option><option value="yellow">${t("lvl.yellow")}</option><option value="orange">${t("lvl.orange")}</option></select></div>
+  <label class="small"><input type="checkbox" checked> ${A("Ask parents to confirm attendance","طلب تأكيد الحضور")}</label><br><label class="small"><input type="checkbox"> ${A("Also send SMS","إرسال SMS أيضاً")}</label>
+  <div style="margin-top:12px"><button class="btn p" onclick="S.anns.unshift({t:anT.value,d:anM.value,aud:anA.value,lvl:anL.value,yes:0,no:0,pend:1248,rsvp:true});pushNotif('📢',anT.value);toast('${A("Announcement sent","تم إرسال الإعلان")}','1,248 ${A("families","أسرة")}');render()">${t("send")}</button></div></div></div>`}
+function vCal(){head(t("calendar"),A("September 2026","سبتمبر ٢٠٢٦"));
+ const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];let cells=days.map(d=>`<div class="h">${d}</div>`);for(let i=0;i<2;i++)cells.push(`<div style="background:none;border:0"></div>`);
+ for(let d=1;d<=30;d++){const e=S.events[d];cells.push(`<div style="${d===3?"border-color:var(--maroon)":""}"><b>${d}</b>${e?`<em class="${e[1]||""}">${e[0]}</em>`:""}</div>`)}
+ return `<div class="cal">${cells.join("")}</div><div class="row small muted" style="margin-top:10px"><span class="tag" style="background:var(--maroon-t);color:var(--maroon)">Academic</span><span class="tag info">Event</span><span class="tag warn">Finance</span></div>`}
+function vFeesAdmin(){head(t("fees"),A("Academic year 2026-27","العام الدراسي ٢٠٢٦-٢٧"));
+ return `<div class="mini"><div><span class="small muted">Billed YTD</span><b>QR 7.48M</b></div><div><span class="small muted">Collected</span><b>QR 6.99M</b></div><div><span class="small muted">Outstanding</span><b style="color:var(--bad)">QR 485,200</b></div><div><span class="small muted">Overdue (>7 days)</span><b>14 families</b></div></div>
+ <div class="row" style="margin-bottom:12px"><select class="btn"><option>All</option><option>Overdue</option><option>Due this month</option></select><button class="btn" onclick="toast('${A("Reminders sent","تم إرسال التذكيرات")}','14 push + SMS')">${A("Send reminders to overdue","تذكير المتأخرين")}</button><button class="btn" onclick="toast('Export','fees_sep2026.xlsx')">${A("Export","تصدير")}</button></div>
+ <div class="panel">${tbl([A("Student","الطالب"),t("grade"),A("Plan","الخطة"),t("annual"),t("paid"),t("due"),t("nextInst"),A("Status","الحالة")],S.students.map(s=>{const d=dueOf(s);const over=s.due==="1 Sep 2026"&&d>0;return[`<b>${s.name}</b>`,`${s.grade}${s.sec}`,s.feePlan,qr(s.annual),qr(s.annual-d),`<b>${qr(d)}</b>`,s.due,d?`<span class="tag ${over?"bad":"warn"}">${over?A("Overdue","متأخر"):t("pending")}</span>`:`<span class="tag ok">${t("paid")}</span>`]}))}</div>`}
+function vDocs(admin){head(t("docs"),A("Digital documents — no printing","مستندات رقمية بدون طباعة"));
+ return `${admin?`<div class="row" style="margin-bottom:12px"><button class="btn p" onclick="toast('${A("Upload","رفع")}','circular_13.pdf → All parents')">+ ${A("Upload document","رفع مستند")}</button><button class="btn" onclick="toast('${A("Generated","تم الإنشاء")}','1,248 term report cards')">${A("Generate report cards","إنشاء التقارير")}</button></div>`:""}
+ <div class="panel">${tbl([A("Document","المستند"),A("Category","الفئة"),A("Date","التاريخ"),A("For","لـ"),""],S.documents.map(d=>[`📄 <b>${d.n}</b>`,`<span class="tag neut">${d.cat}</span>`,d.date,d.for,d.action&&!admin?`<button class="btn sm p" onclick="toast('${d.action==="Sign"?A("Signed","تم التوقيع"):A("Submitted","تم الإرسال")}','${d.n}')">${d.action==="Sign"?A("Sign","توقيع"):A("Fill","تعبئة")}</button>`:`<span class="link" onclick="toast('${A("Opening","فتح")}','${d.n}')">${A("Open","فتح")}</span>`]))}</div>`}
+function vReports(){head(t("reports"),"");
+ const rows=[["Attendance by grade (Sep)","Academic","📊"],["Fee collection vs target","Finance","💰"],["Bus punctuality — 30 days","Transport","🚌"],["Work orders by category & SLA","Facilities","🛠"],["Cleaning inspection scores","Facilities","🧹"],["Teacher absence summary","HR","👩‍🏫"],["Parent app engagement","Communication","📱"]];
+ return `<div class="grid g2"><div class="panel"><h2>${A("Available reports","التقارير المتاحة")}</h2><div class="list">${rows.map(r=>`<div><span>${r[2]} ${r[0]} <span class="tag neut">${r[1]}</span></span><span class="link" onclick="toast('${r[0]}','PDF / Excel')">${A("Run","تشغيل")}</span></div>`).join("")}</div></div>
+ <div class="panel"><h2>${A("Attendance by grade — this week","الحضور حسب الصف")}</h2>${tbl([t("grade"),"Sun","Mon","Tue","Wed","Thu"],[["KG",95.1,96.0,94.2,95.5,95.8],["1–3",97.2,97.0,95.8,96.9,96.7],["4–6",97.4,96.9,95.0,96.6,96.5],["7–9",96.5,96.1,94.9,95.8,95.9],["10–12",95.8,95.2,93.7,95.1,95.0]].map(r=>r.map((c,i)=>i?`<span class="tag ${c>=96?"ok":c>=95?"warn":"bad"}">${c}%</span>`:`<b>${c}</b>`)))}</div></div>`}
+function vSettings(){head(t("settings"),A("School profile, modules and plan","ملف المدرسة والوحدات والباقة"));
+ return `<div class="grid g2"><div class="panel"><h2>${A("School profile","ملف المدرسة")}</h2><div class="kv"><span>School</span><span>Al Noor International School (sample)</span><span>Licence</span><span>MOEHE private school</span><span>Students / staff</span><span>1,248 / 126</span><span>Plan</span><span><b>Professional</b> — QR 2,500 / month</span><span>Languages</span><span>English, Arabic</span><span>Branding</span><span>Custom logo & colours ✓</span></div></div>
+ <div class="panel"><h2>${A("Modules","الوحدات")}</h2><div class="check">${[["Parent communication",1],["Attendance & homework",1],["Fees & receipts",1],["Online payment gateway (QCB-approved)",1],["Bus tracking (GPS + geofence)",1],["Facilities management",1],["Cleaning & pest control",1],["Preventive maintenance & assets",1],["AI school assistant",1],["SMS add-on",0],["API integrations",0]].map(m=>`<label><input type="checkbox" ${m[1]?"checked":""}> ${m[0]}</label>`).join("")}</div></div></div>`}
+function openAlert(){let lvl="red";const draw=()=>{$("modalBox").className="box";$("modalBox").innerHTML=`<h2>${t("selectLevel")}</h2><div class="lvls">${["red","orange","yellow","blue"].map(l=>`<button class="${lvl===l?"on":""}" data-l="${l}"><span class="dot" style="background:${{red:"#B42323",orange:"#E07A1F",yellow:"#D6A81B",blue:"#1F5FA8"}[l]}"></span>${t("lvl."+l)}</button>`).join("")}</div><div class="field"><label>${t("message")}</label><textarea rows="3">${t("alertMsg")}</textarea></div><div class="small muted">${A("Sent to: 1,248 parents · 126 staff · push + SMS · both languages","يُرسل إلى ١٢٤٨ ولي أمر و١٢٦ موظفاً · إشعار + SMS · باللغتين")}</div><div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="modalClose()">${t("cancel")}</button><button class="btn danger" id="fire">${t("send")}</button></div>`;
+  $("modalBox").querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lvl=b.dataset.l;draw()});$("fire").onclick=()=>{S.alert=lvl;pushNotif("🚨",t("alertMsg"));modalClose();toast(t("lvl."+lvl),t("alertLive"));render()}};draw();$("modal").classList.add("open")}
 
-/* ===== PARENT ===== */
-const kid=()=>S.kids.find(k=>k.id===S.childId);
+/* ================= PARENT ================= */
 function vParent(){
-  head(`${t("goodMorning")}, ${lang==="ar"?"السيد سليم":"Mr. Saleem"}`,"");
-  const k=kid();const kn=k.name[lang];
-  const kids=`<div class="kids">${S.kids.map(c=>`<button class="kid ${S.childId===c.id?"on":""}" onclick="S.childId='${c.id}';render()"><div class="av">${c.name[lang][0]}</div><div><b>${c.name[lang]}</b><div class="small muted">${t("grade")} ${c.grade} · ${t("attendance")} <span class="tag ${c.att>=95?"ok":"warn"}">${c.att}%</span></div></div></button>`).join("")}</div>`;
-  if(S.page==="bus")return kids+vBus(kn);
-  if(S.page==="fees")return kids+vFeesParent(k,kn);
-  if(S.page==="ai")return kids+vAI(kn);
-  const quick=[["bus","🚌","bus"],["fees","💰","fees"],["home","📚","homework"],["home","📊","attendance"],["home","📢","announcements"],["home","👩‍🏫","teachersQ"],["home","🔧","report"],["home","📄","docs"]];
-  return kids+`<div class="quick">${quick.map(([p,i,l])=>`<button onclick="${p==="home"?`toast('${t(l)}','${lang==="ar"?"يفتح في التطبيق الكامل":"Opens in the full app"}')`:`go('${p}')`}"><span>${i}</span>${t(l)}</button>`).join("")}</div>
-  <div class="grid g3">
-   <div class="panel"><h2>${t("timetable")}</h2><div class="list">${k.tt.map((s,i)=>`<div><span>${s}</span><span class="muted small">${7+i}:${i?"30":"45"}</span></div>`).join("")}</div></div>
-   <div class="panel"><h2>${t("homework")}</h2><div class="list">${k.hw.map(h=>`<div><div><b>${h.s}</b><div class="small">${h.t}</div></div><span class="tag warn">${t("dueOn")} ${h.d}</span></div>`).join("")}</div>
-     <h2 style="margin-top:14px">${t("exams")}</h2><div class="list">${k.exams.map(e=>`<div><b>${e.s}</b><span class="muted small">${e.d}</span></div>`).join("")}</div></div>
-   <div class="panel"><h2>${t("notifs")}</h2><div class="list">${S.notifs.slice(0,6).map(n=>`<div><span>${n.i} ${n.m}</span><span class="muted small">${n.w}</span></div>`).join("")}</div>
-     <div class="panel" style="margin-top:12px;background:var(--sand-t);border-color:#e8dcc1"><b>Parent–Teacher Meeting</b><div class="small muted">10 Sep · 3:00–6:00 PM</div>${S.rsvp?`<span class="tag ok" style="margin-top:6px">${t("rsvpOk")}</span>`:`<button class="btn sm p" style="margin-top:8px" onclick="S.rsvp=1;toast('${t("rsvpOk")}');render()">${t("rsvp")}</button>`}</div></div>
-  </div>`;
+  const k=kid(),kn=kidName(k);
+  head(`${t("goodMorning")}, ${A("Mr. Saleem","السيد سليم")}`,A("Al Noor International School","مدرسة النور الدولية"));
+  const kidsBar=`<div class="kids">${S.students.filter(s=>s.parent==="P-0231").map(c=>`<button class="kid ${S.childId===c.id?"on":""}" onclick="S.childId='${c.id}';render()"><div class="av">${kidName(c)[0]}</div><div><b>${kidName(c)}</b><div class="small muted">${t("grade")} ${c.grade}${c.sec} · <span class="tag ${c.att>=95?"ok":"warn"}">${c.att}%</span></div></div></button>`).join("")}</div>`;
+  const p=S.page;let body;
+  if(p==="attendance")body=vPAtt(k,kn);else if(p==="homework")body=vPHw(k,kn);else if(p==="results")body=vPResults(k,kn);else if(p==="calendar")body=vCal();else if(p==="ann")body=vAnn(false);
+  else if(p==="fees")body=vPFees(k,kn);else if(p==="bus")body=vBus(k,kn);else if(p==="messages")body=vMsgs();else if(p==="docs")body=vDocs(false);else if(p==="report")body=vPReport();else if(p==="notifs")body=vNotifs();else if(p==="ai")body=vAI(k,kn);
+  else{const quick=[["bus","🚌","bus"],["fees","💰","fees"],["homework","📚","homework"],["attendance","📊","attendance"],["ann","📢","ann"],["messages","💬","messages"],["report","🔧","report"],["docs","📄","docs"]];
+   body=`<div class="quick">${quick.map(([pg,i,l])=>`<button onclick="go('${pg}')"><span>${i}</span>${t(l)}</button>`).join("")}</div><div class="grid g3">
+   <div class="panel"><h2>${A("Today's timetable","جدول اليوم")}</h2><div class="list">${S.tt[k.grade].map((s,i)=>`<div><span>${s}</span><span class="muted small">${7+Math.floor((i*45+45)/60)}:${String((i*45+45)%60).padStart(2,"0")}</span></div>`).join("")}</div></div>
+   <div class="panel"><h2>${t("homework")}</h2><div class="list">${S.hw.filter(h=>h.sid===k.id&&h.st==="Pending").map(h=>`<div><div><b>${h.s}</b><div class="small">${h.t}</div></div><span class="tag warn">${h.d}</span></div>`).join("")||`<div class="muted">${A("Nothing pending","لا يوجد")}</div>`}</div><h2 style="margin-top:14px">${t("results")}</h2><div class="list">${S.exams.filter(e=>e.sid===k.id).map(e=>`<div><b>${e.s}</b><span class="muted small">${e.d}</span></div>`).join("")}</div></div>
+   <div class="panel"><h2>${t("notifs")} <span class="link" onclick="go('notifs')">${A("All","الكل")}</span></h2><div class="list">${S.notifs.slice(0,5).map(n=>`<div><span>${n.i} ${n.m}</span><span class="muted small">${n.w}</span></div>`).join("")}</div></div></div>`}
+  return kidsBar+body;
 }
-function vBus(kn){
-  const steps=[[t("arriving"),"6:50"],[t("arrived"),"6:57"],[`${kn} ${t("boarded")}`,"6:58"],[`${kn} ${t("atSchool")}`,"7:42"],[`${kn} ${t("homeBound")}`,"13:35"]];
-  const eta=S.busStep===1?8:S.busStep===2?0:null;
-  return `<div class="grid g2"><div>
-   <div class="eta"><div><div class="small" style="opacity:.8">${t("busStops")}</div><div class="big">${eta===null?"—":eta===0?t("arrived"):eta}</div><div class="small" style="opacity:.8">${eta>0?t("busAway"):""}</div></div><div style="font-size:42px">🚌</div></div>
-   <div class="panel"><div class="bus">${steps.map((s,i)=>`<div class="st ${i<S.busStep?"done":i===S.busStep?"live":""}"><b>${s[0]}</b><div class="small muted">${i<=S.busStep?s[1]:"—"}</div></div>`).join("")}</div>
-   <button class="btn" style="margin-top:10px" onclick="if(S.busStep<5){S.busStep++;pushNotif('🚌',steps[S.busStep-1][0]);toast('🚌 '+steps[S.busStep-1][0])}render()">${t("simulate")}</button></div></div>
-   <div class="panel"><h2>${lang==="ar"?"الخريطة الحية":"Live map"}</h2><div style="height:260px;border-radius:8px;background:repeating-linear-gradient(45deg,#e9ecf1 0 10px,#f1f3f6 10px 20px);display:grid;place-items:center;color:var(--ink-3)">GPS + 500 m geofence<br><span class="small">Phase 2</span></div></div></div>`;
-}
-function vFeesParent(k,kn){
-  const due=k.fee.annual-k.fee.paid-(S.paid&&k.id==="ahmed"?6000:0);
-  return `<div class="grid g2"><div class="panel"><h2>${kn} — ${t("grade")} ${k.grade}</h2>
-   <div class="fee"><div><span class="small muted">${t("annual")}</span><b>${qr(k.fee.annual)}</b></div><div><span class="small muted">${t("paid")}</span><b>${qr(k.fee.annual-due)}</b></div><div class="due"><span class="small muted">${t("due")}</span><b>${qr(due)}</b></div></div>
-   ${due?`<div class="row" style="justify-content:space-between"><span>${t("nextInst")}: <b>${k.fee.due}</b></span><button class="btn p" onclick="S.paid=true;pushNotif('🧾','${t("paidOk")} — QR 6,000');toast('${t("paidOk")}','${qr(6000)} · ${t("receipt")} #R-2026-0912');render()">${t("payNow")} · ${qr(due)}</button></div>`:`<span class="tag ok">${t("paidOk")}</span>`}</div>
-   <div class="panel"><h2>${t("receipt")}s</h2><div class="list">${S.paid&&k.id==="ahmed"?`<div><span>🧾 R-2026-0912 · 3 Sep 2026</span><b>${qr(6000)}</b></div>`:""}<div><span>🧾 R-2026-0411 · 20 Apr 2026</span><b>${qr(6000)}</b></div><div><span>🧾 R-2025-0902 · 2 Sep 2025</span><b>${qr(6000)}</b></div></div></div></div>`;
-}
-let chat=[];
-function vAI(kn){
-  const k=kid();
-  const qs=lang==="ar"?["متى اختبار الرياضيات القادم؟","كم المتبقي من الرسوم؟","أين الحافلة؟","ما هو الواجب اليوم؟"]:["When is the next maths exam?","How much fee is remaining?","Where is the school bus?","What homework is due?"];
-  return `<div class="panel" style="max-width:640px"><h2>✦ ${t("assistant")}</h2><div class="chat" id="chatBox">${chat.length?chat.map(m=>`<div class="msg ${m.me?"me":""}">${m.t}</div>`).join(""):`<div class="msg">${lang==="ar"?`مرحباً! أستطيع الإجابة عن أسئلة حول ${kn}.`:`Hi! Ask me anything about ${kn}.`}</div>`}</div>
-   <div class="chips">${qs.map(q=>`<button onclick="askAI('${q}')">${q}</button>`).join("")}</div>
-   <div class="row"><input id="aiIn" class="btn" style="flex:1;text-align:start" placeholder="${t("ask")}" onkeydown="if(event.key==='Enter')askAI(this.value)"><button class="btn p" onclick="askAI(aiIn.value)">${t("send")}</button></div></div>`;
-}
-function askAI(q){ if(!q.trim())return; const k=kid(),kn=k.name[lang],ql=q.toLowerCase();let a;
-  const due=k.fee.annual-k.fee.paid-(S.paid&&k.id==="ahmed"?6000:0);
-  if(/exam|اختبار/.test(ql)){const e=k.exams.find(x=>/math|رياض/.test(ql)?/Math/.test(x.s):true);a=lang==="ar"?`اختبار ${e.s} لـ${kn} في ${e.d}.`:`${kn}'s ${e.s} exam is scheduled for ${e.d}.`}
-  else if(/fee|رسوم|pay/.test(ql))a=lang==="ar"?`المتبقي من رسوم ${kn}: ${qr(due)}${due?`، القسط القادم ${k.fee.due}.`:"."}`:`Outstanding balance for ${kn} is ${qr(due)}${due?`, next instalment due ${k.fee.due}.`:"."}`;
-  else if(/bus|حافلة/.test(ql))a=lang==="ar"?"الحافلة ١٢ على بعد ٦ دقائق تقريباً.":"Bus #12 is approximately 6 minutes away.";
-  else if(/homework|واجب/.test(ql))a=(lang==="ar"?"الواجبات: ":"Homework due: ")+k.hw.map(h=>`${h.s} — ${h.t} (${h.d})`).join("; ");
-  else if(/attend|حضور/.test(ql))a=lang==="ar"?`حضور ${kn} هذا الفصل ${k.att}٪.`:`${kn}'s attendance this term is ${k.att}%.`;
-  else a=lang==="ar"?"يمكنني المساعدة في الاختبارات والرسوم والحافلة والواجبات والحضور.":"I can help with exams, fees, bus, homework and attendance.";
-  chat.push({me:1,t:q},{t:a});render();const b=document.getElementById("chatBox");if(b)b.scrollTop=1e5;}
+function vPAtt(k,kn){const log=S.attLog[k.id];const c=x=>log.filter(a=>a===x).length;
+ return `<div class="mini"><div><span class="small muted">${A("This term","هذا الفصل")}</span><b>${k.att}%</b></div><div><span class="small muted">${A("Present","حاضر")}</span><b>${c("P")}</b></div><div><span class="small muted">${A("Absent","غائب")}</span><b>${c("A")}</b></div><div><span class="small muted">${A("Late","متأخر")}</span><b>${c("L")}</b></div></div>
+ <div class="panel"><h2>${kn} — ${A("last 20 school days","آخر ٢٠ يوماً")}</h2><div class="row">${log.map((a,i)=>`<span class="tag ${a==="P"?"ok":a==="A"?"bad":"warn"}" title="Day ${i+1}">${a}</span>`).join("")}</div>
+ <h3 style="margin:14px 0 6px">${A("Absence log","سجل الغياب")}</h3>${tbl([A("Date","التاريخ"),A("Type","النوع"),A("Reason","السبب"),A("Status","الحالة")],k.id==="S-2026-0417"?[["24 Aug 2026","Absent","Sick — doctor's note uploaded",'<span class="tag ok">Excused</span>'],["31 Aug 2026","Absent","—",'<span class="tag warn">Unexcused</span>'],["3 Sep 2026","Late 7:52","Bus delay",'<span class="tag ok">Excused</span>']]:[["—","—","No absences this term","—"]])}
+ <button class="btn" style="margin-top:10px" onclick="toast('${A("Absence request sent","تم إرسال طلب الغياب")}','${kn} · 7 Sep · Family travel')">${A("Report planned absence","الإبلاغ عن غياب مخطط")}</button></div>`}
+function vPHw(k,kn){return `<div class="panel">${tbl([t("subject"),t("title"),A("Teacher","المعلم"),t("dueDate"),A("Status","الحالة"),""],S.hw.filter(h=>h.sid===k.id).map(h=>[`<b>${h.s}</b>`,h.t,h.by,h.d,`<span class="tag ${pill(h.st)}">${h.st}</span>`,h.st==="Pending"?`<button class="btn sm" onclick="h='${h.t}';toast('${A("Marked done","تم")}','${h.t}')">${A("Mark done","تم")}</button>`:""]))}</div>`}
+function vPResults(k,kn){const r=S.results.find(x=>x.sid===k.id);
+ return `<div class="grid g2"><div class="panel"><h2>${A("Upcoming exams","الاختبارات القادمة")}</h2>${tbl([t("subject"),A("Date","التاريخ"),A("Room","القاعة"),A("Syllabus","المنهج")],S.exams.filter(e=>e.sid===k.id).map(e=>[`<b>${e.s}</b>`,e.d,e.room,e.syl]))}</div>
+ <div class="panel"><h2>${r.term} <span class="tag ok">Avg ${r.avg}% · Rank ${r.rank}</span></h2>${tbl([t("subject"),A("Marks","الدرجة"),A("Grade","التقدير")],r.rows.map(x=>[x[0],`<b>${x[1]}</b>/100`,`<span class="tag ${x[2]==="A"?"ok":"warn"}">${x[2]}</span>`]))}<button class="btn sm" style="margin-top:10px" onclick="toast('${A("Downloading","تنزيل")}','report_card_${kn}.pdf')">📄 ${A("Download report card","تنزيل التقرير")}</button></div></div>`}
+function vPFees(k,kn){const due=dueOf(k);
+ return `<div class="grid g2"><div class="panel"><h2>${kn} — ${t("grade")} ${k.grade}${k.sec}</h2><div class="fee"><div><span class="small muted">${t("annual")}</span><b>${qr(k.annual)}</b></div><div><span class="small muted">${t("paid")}</span><b>${qr(k.annual-due)}</b></div><div class="due"><span class="small muted">${t("due")}</span><b>${qr(due)}</b></div></div>
+  <div class="kv" style="margin-bottom:12px"><span>${A("Fee plan","خطة الرسوم")}</span><span>${k.feePlan}</span><span>${t("nextInst")}</span><span><b>${due?k.due:"—"}</b></span><span>${A("Breakdown","التفاصيل")}</span><span>Tuition ${qr(k.annual-3200)} · Books QR 1,400 · Transport QR 1,800</span></div>
+  ${due?`<button class="btn p" onclick="S.paidIds.push('${k.id}');pushNotif('🧾','${t("paidOk")} — QR 6,000 · R-2026-0912');toast('${t("paidOk")}','${qr(6000)} · ${A("Receipt","إيصال")} R-2026-0912');render()">${t("payNow")} · ${qr(Math.min(due,6000))}</button> <span class="small muted">${A("Card · Apple Pay · Bank transfer","بطاقة · Apple Pay · تحويل")}</span>`:`<span class="tag ok">${A("Fully paid for 2026-27","مدفوعة بالكامل")}</span>`}</div>
+ <div class="panel"><h2>${t("receipts")}</h2>${tbl([A("Receipt","الإيصال"),A("Date","التاريخ"),A("Amount","المبلغ"),A("Method","الطريقة"),""],[...(S.paidIds.includes(k.id)?[["R-2026-0912","3 Sep 2026",6000,"Card"]]:[]),["R-2026-0411","20 Apr 2026",6000,"Bank transfer"],["R-2026-0107","7 Jan 2026",6000,"Card"],["R-2025-0902","2 Sep 2025",6000,"Cash"]].map(r=>[`🧾 ${r[0]}`,r[1],`<b>${qr(r[2])}</b>`,r[3],`<span class="link" onclick="toast('PDF','${r[0]}.pdf')">PDF</span>`]))}</div></div>`}
+function vBus(k,kn){const b=S.busesList.find(x=>x.no===k.bus)||S.busesList[2];
+ const steps=[[t("arriving"),"6:50"],[t("arrived"),"6:57"],[`${kn} ${t("boarded")}`,"6:58"],[`${kn} ${t("atSchool")}`,"7:42"],[`${kn} ${t("homeBound")}`,"13:35"]];const eta=S.busStep===1?8:S.busStep===2?0:null;
+ return `<div class="grid g2"><div><div class="eta"><div><div class="small" style="opacity:.85">${A("Bus","الحافلة")} #${b.no} · ${b.route}</div><div class="big">${eta===null?"—":eta===0?t("arrived"):eta}</div><div class="small" style="opacity:.85">${eta>0?t("busAway"):""}</div></div><div style="font-size:42px">🚌</div></div>
+  <div class="panel"><div class="bus">${steps.map((s,i)=>`<div class="st ${i<S.busStep?"done":i===S.busStep?"live":""}"><b>${s[0]}</b><div class="small muted">${i<=S.busStep?s[1]:"—"}</div></div>`).join("")}</div><button class="btn" style="margin-top:10px" onclick="if(S.busStep<5){S.busStep++;pushNotif('🚌',steps[S.busStep-1][0]);toast('🚌 '+steps[S.busStep-1][0])}render()">${t("simulate")}</button></div></div>
+ <div><div class="panel" style="margin-bottom:12px"><h2>${A("Bus details","تفاصيل الحافلة")}</h2><div class="kv"><span>${A("Driver","السائق")}</span><span>${b.driver} · ${b.phone}</span><span>${A("Plate","اللوحة")}</span><span>${b.plate}</span><span>${A("Pick-up","نقطة الصعود")}</span><span>Al Wakra, Street 12 — 6:55 AM</span><span>${A("Drop-off","النزول")}</span><span>Al Wakra, Street 12 — 2:05 PM</span><span>${A("Supervisor","المشرفة")}</span><span>Ms. Rina · +974 3300 3334</span></div><div class="row" style="margin-top:10px"><button class="btn sm" onclick="toast('${A("Calling","اتصال")}','${b.driver}')">📞 ${A("Call driver","اتصال بالسائق")}</button><button class="btn sm" onclick="toast('${A("Noted","تم")}','${kn} ${A("will not take the bus tomorrow","لن يستخدم الحافلة غداً")}')">${A("Skip tomorrow","تخطي الغد")}</button></div></div>
+  <div class="panel"><h2>${A("Live map","الخريطة الحية")}</h2><div style="height:180px;border-radius:8px;background:repeating-linear-gradient(45deg,#e9ecf1 0 10px,#f1f3f6 10px 20px);display:grid;place-items:center;color:var(--ink-3);text-align:center">GPS + 500 m geofence<br><span class="small">Phase 2</span></div></div></div></div>`}
+function vMsgs(){const th=S.threads[S.thread];
+ return `<div class="grid g2" style="grid-template-columns:1fr 1.5fr"><div>${S.threads.map((x,i)=>`<div class="thread ${S.thread===i?"on":""}" onclick="S.thread=${i};render()" style="margin-bottom:6px"><b>${x.with}</b><div class="small muted">${A("About","بخصوص")} ${x.about} · ${x.m[x.m.length-1].t.slice(0,40)}…</div></div>`).join("")}<button class="btn" style="margin-top:6px" onclick="toast('${A("New message","رسالة جديدة")}','${A("Choose teacher","اختر المعلم")}')">+ ${A("New message","رسالة جديدة")}</button></div>
+ <div class="panel"><h2>${th.with}</h2><div class="msgs">${th.m.map(m=>`<div class="msg ${m.me?"me":""}">${m.t}<div class="small" style="opacity:.7">${m.w}</div></div>`).join("")}</div><div class="row"><input id="mIn" class="btn" style="flex:1;text-align:start" placeholder="${A("Type a message…","اكتب رسالة…")}"><button class="btn p" onclick="if(mIn.value){th=S.threads[S.thread];th.m.push({me:1,t:mIn.value,w:'now'});render()}">${t("send")}</button></div><p class="small muted">${A("Teachers reply within school hours. Messages are logged for safeguarding.","يرد المعلمون خلال ساعات الدوام. الرسائل مسجلة.")}</p></div></div>`}
+function vPReport(){return `<div class="panel" style="max-width:520px"><h2>🔧 ${t("report")}</h2><p class="small muted">${A("Report a problem with the bus, canteen, facilities or app.","الإبلاغ عن مشكلة في الحافلة أو المقصف أو المرافق أو التطبيق.")}</p>
+ <div class="field"><label>${t("category")}</label><select><option>Bus / transport</option><option>Canteen</option><option>Facilities / safety</option><option>App issue</option><option>Other</option></select></div><div class="field"><label>${A("Child","الطفل")}</label><select><option>Ahmed</option><option>Aisha</option></select></div><div class="field"><label>${t("desc")}</label><textarea rows="3">Bus 12 seat belt on row 4 is broken.</textarea></div>
+ <div class="row"><button class="btn sm">📸 ${t("photo")}</button><button class="btn p" onclick="toast('${A("Report submitted","تم إرسال البلاغ")}','${A("Ticket","تذكرة")} #PR-2041 · ${A("Transport office","مكتب النقل")}')">${t("send")}</button></div></div>`}
+function vNotifs(){return `<div class="panel">${S.notifs.map(n=>`<div class="row" style="justify-content:space-between;padding:9px 0;border-bottom:1px solid #EEF0F3"><span>${n.i} ${n.m}</span><span class="muted small">${n.w}</span></div>`).join("")}</div>`}
+function vAI(k,kn){const qs=A(["When is the next maths exam?","How much fee is remaining?","Where is the school bus?","What homework is due?","Who is the maths teacher?"],["متى اختبار الرياضيات القادم؟","كم المتبقي من الرسوم؟","أين الحافلة؟","ما هو الواجب؟","من معلم الرياضيات؟"]);
+ return `<div class="panel" style="max-width:660px"><h2>✦ ${t("ai")}</h2><div class="chat" id="chatBox">${S.chat.length?S.chat.map(m=>`<div class="msg ${m.me?"me":""}">${m.t}</div>`).join(""):`<div class="msg">${A(`Hi! I can answer questions about ${kn} — exams, fees, bus, homework, attendance, teachers.`,`مرحباً! أستطيع الإجابة عن أسئلة حول ${kn}.`)}</div>`}</div><div class="chips">${qs.map(q=>`<button onclick="askAI('${q}')">${q}</button>`).join("")}</div><div class="row"><input id="aiIn" class="btn" style="flex:1;text-align:start" placeholder="${t("ask")}" onkeydown="if(event.key==='Enter')askAI(this.value)"><button class="btn p" onclick="askAI(aiIn.value)">${t("send")}</button></div></div>`}
+function askAI(q){if(!q.trim())return;const k=kid(),kn=kidName(k),ql=q.toLowerCase(),due=dueOf(k);let a;
+ if(/exam|اختبار/.test(ql)){const ex=S.exams.filter(e=>e.sid===k.id);const e=ex.find(x=>/math|رياض/.test(ql)?/Math/.test(x.s):true)||ex[0];a=A(`${kn}'s ${e.s} exam is on ${e.d} in ${e.room}. Syllabus: ${e.syl}.`,`اختبار ${e.s} لـ${kn} في ${e.d}، ${e.room}.`)}
+ else if(/fee|رسوم|pay|balance/.test(ql))a=A(`Outstanding balance for ${kn} is ${qr(due)}${due?`, next instalment due ${k.due}. You can pay from the Fees screen.`:"."}`,`المتبقي من رسوم ${kn}: ${qr(due)}${due?`، القسط القادم ${k.due}.`:"."}`);
+ else if(/bus|حافلة/.test(ql))a=A(`Bus #${k.bus} is approximately ${S.busStep===1?8:6} minutes away. Driver: ${S.busesList.find(b=>b.no===k.bus)?.driver}.`,`الحافلة #${k.bus} على بعد ٦ دقائق تقريباً.`);
+ else if(/homework|واجب/.test(ql))a=A("Homework due: ","الواجبات: ")+S.hw.filter(h=>h.sid===k.id&&h.st==="Pending").map(h=>`${h.s} — ${h.t} (${h.d})`).join("; ");
+ else if(/attend|حضور|absent/.test(ql))a=A(`${kn}'s attendance this term is ${k.att}%.`,`حضور ${kn} هذا الفصل ${k.att}٪.`);
+ else if(/teacher|معلم/.test(ql))a=A(`${kn}'s Mathematics and Science teacher is Ms. Mariam Al-Sulaiti. You can message her from the Messages screen.`,`معلمة الرياضيات والعلوم هي أ. مريم السليطي.`);
+ else a=A("I can help with exams, fees, bus, homework, attendance and teachers.","يمكنني المساعدة في الاختبارات والرسوم والحافلة والواجبات والحضور والمعلمين.");
+ S.chat.push({me:1,t:q},{t:a});render();const b=$("chatBox");if(b)b.scrollTop=1e5}
 
-/* ===== TEACHER ===== */
-function vTeacher(){
-  head(`${t("goodMorning")}, ${lang==="ar"?"أ. مريم":"Ms. Mariam"}`,t("grade")+" 5A");
-  if(S.page==="att")return vAtt();
-  if(S.page==="hw")return vHw();
-  const cls=[["7:45","5A","Mathematics"],["8:30","5B","Mathematics"],["10:00","5A","Science"],["11:30","4A","Mathematics"]];
-  return `<div class="grid g2"><div class="panel"><h2>${t("myClasses")}</h2><div class="list">${cls.map(c=>`<div><span><b>${c[0]}</b> · ${t("grade")} ${c[1]}</span><span>${c[2]}</span></div>`).join("")}</div></div>
-  <div class="panel"><h2>${lang==="ar"?"إجراءات سريعة":"Quick actions"}</h2><div class="quick" style="grid-template-columns:1fr 1fr 1fr"><button onclick="go('att')"><span>✓</span>${t("markAtt")}</button><button onclick="go('hw')"><span>📚</span>${t("addHw")}</button><button onclick="toast('${t("announcements")}')"><span>📢</span>${t("announcements")}</button></div></div></div>`;
-}
-function vAtt(){return `<div class="panel" style="max-width:640px"><h2>${t("grade")} 5A — ${t("attendance")} <span class="tag ok">${S.roster.filter(r=>r.s==="p").length}/${S.roster.length}</span></h2>
- <table>${S.roster.map((r,i)=>`<tr><td>${r.n}</td><td style="text-align:end"><span class="att">${["p","a","l"].map(s=>`<button class="${s} ${r.s===s?"on":""}" onclick="S.roster[${i}].s='${s}';render()">${t(s==="p"?"present":s==="a"?"absent":"late")}</button>`).join("")}</span></td></tr>`).join("")}</table>
- <button class="btn p" style="margin-top:12px" onclick="S.roster.filter(r=>r.s==='a').forEach(r=>pushNotif('📊',r.n.split(' ')[0]+' '+(lang==='ar'?'سُجّل غائباً اليوم':'was marked absent today')));toast('${t("saved")}');render()">${t("save")}</button></div>`}
-function vHw(){return `<div class="panel" style="max-width:520px"><h2>${t("addHw")} — ${t("grade")} 5A</h2>
- <div class="field"><label>${t("subject")}</label><select id="hwS"><option>Science</option><option>Mathematics</option><option>English</option><option>Arabic</option></select></div>
- <div class="field"><label>${t("title")}</label><input id="hwT" value="Chapter 5 — Energy"></div>
- <div class="field"><label>${t("dueDate")}</label><input id="hwD" type="date" value="2026-09-08"></div>
- <button class="btn p" onclick="S.kids[0].hw.unshift({s:hwS.value,t:hwT.value,d:hwD.value});pushNotif('📚',(lang==='ar'?'واجب جديد — ':'New homework assigned — ')+hwS.value);toast('${t("hwSent")}',hwS.value+' · '+hwT.value);go('classes')">${t("assign")}</button></div>`}
+/* ================= TEACHER ================= */
+function vTeacher(){head(`${t("goodMorning")}, ${A("Ms. Mariam","أ. مريم")}`,A("Mathematics & Science · 5A, 5B, 4A","الرياضيات والعلوم · 5A, 5B, 4A"));
+ const p=S.page;if(p==="att")return vTAtt();if(p==="hw")return vTHw();if(p==="materials")return vTMat();if(p==="marks")return vTMarks();if(p==="ann")return vAnn(false);if(p==="messages")return vMsgs();if(p==="timetable")return vTTT();
+ const cls=[["7:45","5A","Mathematics","Room 204"],["8:30","5B","Mathematics","Room 205"],["10:00","5A","Science","Lab 1"],["11:30","4A","Mathematics","Room 112"],["12:15","—","Free period","Staff room"]];
+ return `<div class="mini"><div><span class="small muted">${A("Classes today","حصص اليوم")}</span><b>4</b></div><div><span class="small muted">${A("Attendance pending","حضور معلق")}</span><b>5B, 4A</b></div><div><span class="small muted">${A("Homework to grade","واجبات للتصحيح")}</span><b>23</b></div><div><span class="small muted">${A("Unread messages","رسائل غير مقروءة")}</span><b>2</b></div></div>
+ <div class="grid g2"><div class="panel"><h2>${t("classes")}</h2>${tbl([A("Time","الوقت"),t("grade"),t("subject"),A("Room","القاعة"),""],cls.map(c=>[`<b>${c[0]}</b>`,c[1],c[2],c[3],c[1]!=="—"?`<span class="link" onclick="go('att')">${t("att")}</span>`:""]))}</div>
+ <div class="panel"><h2>${A("Quick actions","إجراءات سريعة")}</h2><div class="quick" style="grid-template-columns:1fr 1fr 1fr"><button onclick="go('att')"><span>✓</span>${t("att")}</button><button onclick="go('hw')"><span>📚</span>${t("hw")}</button><button onclick="go('materials')"><span>📁</span>${t("materials")}</button><button onclick="go('marks')"><span>📝</span>${t("marks")}</button><button onclick="go('messages')"><span>💬</span>${t("messages")}</button><button onclick="setRole('fm')"><span>🔧</span>${t("report")}</button></div></div></div>`}
+function vTTT(){const d=["Sun","Mon","Tue","Wed","Thu"],slots=["7:45","8:30","9:15","10:00","10:45","11:30","12:15"];const g=["5A Maths","5B Maths","4A Maths","5A Science","—","5B Science","4A Science"];
+ return `<div class="panel">${tbl(["",...d],slots.map((s,i)=>[`<b>${s}</b>`,...d.map((x,j)=>g[(i+j)%7]==="—"?`<span class="muted">Free</span>`:g[(i+j)%7])]))}</div>`}
+function vTAtt(){return `<div class="panel" style="max-width:720px"><h2>${t("grade")} 5A — ${t("attendance")} · ${A("Period 1, 7:45","الحصة ١")} <span class="tag ok">${S.roster.filter(r=>r[1]==="p").length}/${S.roster.length}</span></h2>
+ ${tbl([A("Student","الطالب"),A("Bus","الحافلة"),A("Mark","التسجيل")],S.roster.map((r,i)=>{const s=stu(r[0]);return[`<b>${s.name}</b><div class="small muted">${s.id}</div>`,s.bus==="—"?"Private":"Bus #"+s.bus+(s.bus==="12"?' <span class="tag ok">boarded 6:58</span>':""),`<span class="att">${["p","a","l"].map(x=>`<button class="${x} ${r[1]===x?"on":""}" onclick="S.roster[${i}][1]='${x}';render()">${t(x==="p"?"present":x==="a"?"absent":"late")}</button>`).join("")}</span>`]}))}
+ <div class="row" style="margin-top:12px"><button class="btn p" onclick="S.roster.filter(r=>r[1]==='a').forEach(r=>pushNotif('📊',stu(r[0]).name.split(' ')[0]+' '+A('was marked absent today','سُجّل غائباً اليوم')));toast('${t("saved")}');render()">${t("save")}</button><span class="small muted">${A("Absent students' parents get a push notification instantly.","يصل إشعار فوري لأولياء أمور الغائبين.")}</span></div></div>`}
+function vTHw(){return `<div class="grid g2"><div class="panel"><h2>${A("Assign homework","إضافة واجب")} — 5A</h2>
+ <div class="field"><label>${t("subject")}</label><select id="hwS"><option>Science</option><option>Mathematics</option></select></div><div class="field"><label>${t("title")}</label><input id="hwT" value="Chapter 5 — Energy, Q1–8"></div><div class="field"><label>${A("Instructions","التعليمات")}</label><textarea rows="2">Answer in the exercise book. Show working.</textarea></div><div class="field"><label>${t("dueDate")}</label><input id="hwD" type="date" value="2026-09-08"></div><div class="row"><button class="btn sm">📎 ${A("Attach file","إرفاق ملف")}</button><button class="btn p" onclick="S.hw.unshift({sid:'S-2026-0417',s:hwS.value,t:hwT.value,d:hwD.value,by:'Ms. Mariam',st:'Pending'});pushNotif('📚',A('New homework — ','واجب جديد — ')+hwS.value+', Ahmed');toast('${t("hwSent")}',hwS.value+' · '+hwT.value+' · 32 ${A("parents","ولي أمر")}');render()">${t("assign")}</button></div></div>
+ <div class="panel"><h2>${A("Assigned this week","الواجبات هذا الأسبوع")}</h2>${tbl([t("subject"),t("title"),t("dueDate"),A("Submitted","مُسلّم")],S.hw.filter(h=>h.sid==="S-2026-0417").map(h=>[h.s,h.t,h.d,`<span class="tag ${h.st==="Submitted"?"ok":"warn"}">${h.st==="Submitted"?"32/32":"9/32"}</span>`]))}</div></div>`}
+function vTMat(){return `<div class="grid g2"><div class="panel"><h2>${t("materials")} — 5A</h2>${tbl([t("subject"),t("title"),A("Type","النوع"),A("Date","التاريخ"),A("Views","المشاهدات")],S.mats.map(m=>[m.s,`📁 ${m.t}`,m.type,m.d,"28 / 32"]))}</div><div class="panel"><h2>${A("Upload material","رفع مادة")}</h2><div class="field"><label>${t("subject")}</label><select><option>Science</option><option>Mathematics</option></select></div><div class="field"><label>${t("title")}</label><input value="Energy — worksheet pack"></div><div class="field"><label>${A("File","الملف")}</label><input type="file"></div><label class="small"><input type="checkbox" checked> ${A("Notify parents","إشعار أولياء الأمور")}</label><div style="margin-top:10px"><button class="btn p" onclick="S.mats.unshift({s:'Science',t:'Energy — worksheet pack',type:'PDF · 1.2 MB',d:'3 Sep'});toast('${A("Uploaded","تم الرفع")}','32 ${A("parents notified","ولي أمر")}');render()">${A("Upload","رفع")}</button></div></div></div>`}
+function vTMarks(){return `<div class="panel" style="max-width:720px"><h2>${t("marks")} — 5A · ${A("Maths quiz 2 (out of 20)","اختبار الرياضيات ٢ (من ٢٠)")}</h2>${tbl([A("Student","الطالب"),A("Marks","الدرجة"),"%",A("Grade","التقدير")],S.marks.map((m,i)=>{const s=stu(m[0]);const v=m[1];return[`<b>${s.name}</b>`,`<input class="btn" style="width:70px" value="${v}" onchange="S.marks[${i}][1]=this.value;render()">`,v===""?"—":Math.round(v/20*100)+"%",v===""?'<span class="tag neut">Absent</span>':`<span class="tag ${v>=16?"ok":v>=12?"warn":"bad"}">${v>=18?"A+":v>=16?"A":v>=12?"B":"C"}</span>`]}))}
+ <div class="row" style="margin-top:12px"><button class="btn p" onclick="pushNotif('🏆','Maths quiz 2 result published — Ahmed 18/20');toast('${A("Marks published","تم نشر الدرجات")}','${A("Parents notified · class average","تم إشعار أولياء الأمور · المتوسط")} 16.7')">${A("Publish to parents","نشر لأولياء الأمور")}</button><button class="btn" onclick="toast('${A("Saved as draft","حُفظ كمسودة")}')">${A("Save draft","حفظ مسودة")}</button></div></div>`}
 
-/* ===== FACILITIES ===== */
-function vFM(){
-  head(lang==="ar"?"مركز قيادة المرافق":"Facilities command centre",lang==="ar"?"المباني · الأصول · الصيانة · النظافة · مكافحة الآفات":"Buildings · Assets · Maintenance · Cleaning · Pest control");
-  if(S.page==="clean")return vClean();
-  if(S.page==="pest")return `<div class="panel"><h2>${t("pestSched")}</h2><table><tr><th>${t("location")}</th><th>${lang==="ar"?"آخر معالجة":"Last treatment"}</th><th>${lang==="ar"?"المنتج":"Product"}</th><th>${lang==="ar"?"الفني":"Technician"}</th><th>${t("nextTreat")}</th></tr>${S.pest.map(p=>`<tr><td>${p.loc}</td><td>${p.last}</td><td>${p.prod}</td><td>${p.tech}</td><td><span class="tag ${p.next==="5 Sep"?"bad":p.next==="10 Sep"?"warn":"ok"}">${p.next}</span></td></tr>`).join("")}</table><p class="small muted">🔔 ${lang==="ar"?"تذكير تلقائي للمدير قبل ٧ أيام من كل معالجة.":"Automatic reminder to the facilities manager 7 days before each treatment."}</p></div>`;
-  if(S.page==="pm")return `<div class="panel"><h2>${t("pm")}</h2><table><tr><th>${t("asset")}</th><th>${t("lastSvc")}</th><th>${t("nextSvc")}</th><th>${lang==="ar"?"الأيام":"Days"}</th></tr>${S.assets.map(a=>`<tr><td><b>${a.id}</b> <span class="muted">${a.n}</span></td><td>${a.last}</td><td>${a.next}</td><td><span class="tag ${a.d<=7?"bad":a.d<=14?"warn":"ok"}">${a.d}</span></td></tr>`).join("")}</table></div>`;
-  return `<div class="grid g2" style="grid-template-columns:1.4fr 1fr"><div class="panel"><h2>${t("workOrders")} <span class="tag warn">${S.wos.filter(w=>w.st!=="verified").length} ${t("open")}</span></h2>
-   ${S.wos.map((w,i)=>`<div style="padding:10px 0;border-bottom:1px solid #EEF0F3"><div class="row" style="justify-content:space-between"><div><b>#${w.id}</b> · ${w.cat} · ${w.loc}<div class="small muted">${w.txt} · ${w.who}</div></div><div class="row"><span class="tag ${pill(w.pri)}">${t(w.pri)}</span>${w.st!=="verified"?`<button class="btn sm" onclick="S.wos[${i}].st=STEPS[STEPS.indexOf('${w.st}')+1];toast('#${w.id}',t('status.'+S.wos[${i}].st));render()">${t("advance")} →</button>`:""}</div></div>
-   <div class="pipe" style="margin-top:6px">${STEPS.map(s=>`<span class="${STEPS.indexOf(s)<=STEPS.indexOf(w.st)?"on":""}">${t("status."+s)}</span>`).join("")}</div></div>`).join("")}</div>
-   <div class="panel"><h2>🚨 ${t("newWO")}</h2>
-   <div class="field"><label>${t("category")}</label><select id="woC"><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Furniture</option><option>Fire system</option><option>CCTV</option></select></div>
-   <div class="field"><label>${t("location")}</label><input id="woL" value="Block B / Room 204"></div>
-   <div class="field"><label>${t("priority")}</label><select id="woP"><option value="high">${t("high")}</option><option value="med">${t("med")}</option><option value="low">${t("low")}</option></select></div>
-   <div class="field"><label>${t("desc")}</label><textarea id="woD" rows="2">AC not working</textarea></div>
-   <div class="row"><button class="btn sm">📸 ${t("photo")}</button><button class="btn p" onclick="const id=S.wos[0].id+1;S.wos.unshift({id,cat:woC.value,loc:woL.value,pri:woP.value,st:'new',who:'—',txt:woD.value});toast('${t("woCreated")}','#'+id+' · '+woC.value);render()">${t("create")}</button></div></div></div>`;
-}
-function vClean(){return `<div class="grid g2">${S.clean.map(b=>`<div class="panel"><h2>${b.b}</h2><table>${b.a.map(a=>`<tr><td>${a[0]}</td><td style="text-align:end"><span class="tag ${pill(a[1])}">${a[1]==="ok"?(lang==="ar"?"مكتمل":"Done"):(lang==="ar"?"قيد التنفيذ":"In progress")}</span></td></tr>`).join("")}</table></div>`).join("")}
- <div class="panel"><h2>${t("inspect")} — Building A / Canteen</h2><div class="check">${(lang==="ar"?["تنظيف الأرضيات","تنظيف الطاولات","فحص النوافذ","إزالة النفايات","التعقيم"]:["Floors cleaned","Desks / tables cleaned","Windows checked","Waste removed","Sanitization completed"]).map(c=>`<label><input type="checkbox" checked> ${c}</label>`).join("")}</div>
- <button class="btn p" style="margin-top:10px" onclick="S.clean[0].a[2][1]='ok';toast('${t("inspOk")}','Building A / Canteen · 94% → 96%');render()">${t("submitInsp")}</button><p class="small muted">${lang==="ar"?"دليل خدمة مؤرخ وموقّع بدل تقرير المقاول.":"Timestamped proof of service instead of trusting the contractor's report."}</p></div></div>`}
+/* ================= FACILITIES ================= */
+function vFM(){head(A("Facilities command centre","مركز قيادة المرافق"),A("Buildings · Assets · Maintenance · Cleaning · Pest control · Contractors","المباني · الأصول · الصيانة · النظافة · مكافحة الآفات · المقاولون"));
+ const p=S.page;if(p==="assets")return vAssets();if(p==="pm")return vPM();if(p==="clean")return vClean();if(p==="pest")return vPest();if(p==="contractors")return vContractors();
+ const open=S.wos.filter(w=>w.st!=="verified");
+ return `<div class="mini"><div><span class="small muted">${t("open")}</span><b>${open.length}</b></div><div><span class="small muted">${t("high")} ${t("priority")}</span><b style="color:var(--bad)">${open.filter(w=>w.pri==="high").length}</b></div><div><span class="small muted">${A("Avg resolution (30d)","متوسط الإنجاز")}</span><b>11.4h</b></div><div><span class="small muted">${A("SLA met","الالتزام بـ SLA")}</span><b>93%</b></div></div>
+ <div class="grid g2" style="grid-template-columns:1.5fr 1fr"><div class="panel"><h2>${t("wo")} <div class="row"><select class="btn sm"><option>All</option><option>Open</option><option>HVAC</option></select></div></h2>
+  ${S.wos.map((w,i)=>`<div style="padding:10px 0;border-bottom:1px solid #EEF0F3"><div class="row" style="justify-content:space-between"><div><b>#${w.id}</b> · ${w.cat} · ${w.loc} ${w.photo?"📸":""}<div class="small muted">${w.txt} · ${A("by","بواسطة")} ${w.by} · ${w.on} · SLA ${w.sla} · ${w.who}</div></div><div class="row"><span class="tag ${pill(w.pri)}">${t(w.pri)}</span>${w.st!=="verified"?`<button class="btn sm" onclick="S.wos[${i}].st=STEPS[STEPS.indexOf('${w.st}')+1];if(S.wos[${i}].who==='—')S.wos[${i}].who='Noel D.';toast('#${w.id}',t('status.'+S.wos[${i}].st));render()">${t("advance")} →</button>`:""}</div></div><div class="pipe" style="margin-top:6px">${STEPS.map(s=>`<span class="${STEPS.indexOf(s)<=STEPS.indexOf(w.st)?"on":""}">${t("status."+s)}</span>`).join("")}</div></div>`).join("")}</div>
+ <div class="panel"><h2>🚨 ${t("newWO")}</h2><div class="field"><label>${t("category")}</label><select id="woC"><option>HVAC</option><option>Electrical</option><option>Plumbing</option><option>Furniture</option><option>Fire system</option><option>CCTV</option><option>Elevator</option><option>Playground</option><option>Doors & locks</option></select></div><div class="field"><label>${t("location")}</label><input id="woL" value="Block B / Room 204"></div><div class="field"><label>${t("priority")}</label><select id="woP"><option value="high">${t("high")} — 4h</option><option value="med">${t("med")} — 24h</option><option value="low">${t("low")} — 72h</option></select></div><div class="field"><label>${t("desc")}</label><textarea id="woD" rows="2">AC not working</textarea></div><div class="field"><label>${A("Assign to","إسناد إلى")}</label><select id="woW"><option>Auto (by category)</option><option>Noel D. (in-house)</option><option>Cool Air Services</option><option>SafeGuard FLS</option></select></div>
+  <div class="row"><button class="btn sm">📸 ${t("photo")}</button><button class="btn p" onclick="const id=S.wos[0].id+1;S.wos.unshift({id,cat:woC.value,loc:woL.value,pri:woP.value,st:'new',who:'—',txt:woD.value,by:'Admin office',on:'3 Sep 09:15',sla:{high:'4h',med:'24h',low:'72h'}[woP.value],photo:true});toast('${t("woCreated")}','#'+id+' · '+woC.value+' · ${A("technician notified","تم إشعار الفني")}');render()">${t("create")}</button></div></div></div>`}
+function vAssets(){return `<div class="row" style="margin-bottom:12px"><input class="search" placeholder="${t("search")}"><select class="btn"><option>${A("All categories","كل الفئات")}</option><option>HVAC</option><option>Fire system</option><option>Electrical</option></select><button class="btn p" onclick="toast('${A("Asset form","نموذج أصل")}','QR-code label generated')">+ ${A("Add asset","إضافة أصل")}</button></div>
+ <div class="panel">${tbl([t("asset"),A("Description","الوصف"),t("category"),A("Installed","التركيب"),A("Vendor","المورد"),t("lastSvc"),t("nextSvc"),A("Condition","الحالة")],S.assets.map(a=>[`<b>${a.id}</b>`,a.n,a.cat,a.inst,a.vendor,a.last,`${a.next} <span class="tag ${a.d<=0?"bad":a.d<=14?"warn":"ok"}">${a.d<=0?A("Overdue","متأخر"):a.d+"d"}</span>`,`<span class="tag ${pill(a.cond)}">${a.cond}</span>`]))}</div><p class="small muted">${A("Each asset carries a QR label — scan to see history and raise a work order.","لكل أصل ملصق QR — امسحه لعرض السجل أو رفع أمر عمل.")}</p>`}
+function vPM(){const sched=S.assets.slice().sort((a,b)=>a.d-b.d);
+ return `<div class="grid g2"><div class="panel"><h2>${A("Due in the next 30 days","المستحق خلال ٣٠ يوماً")}</h2>${tbl([t("asset"),A("Task","المهمة"),A("Vendor","المورد"),A("Due","الاستحقاق"),""],sched.filter(a=>a.d<=30).map(a=>[`<b>${a.id}</b> <span class="muted">${a.n}</span>`,{HVAC:"Filter clean, gas check",Playground:"Safety inspection","Fire system":"Quarterly test & log",Electrical:"Load test 30 min"}[a.cat]||"Routine service",a.vendor,`<span class="tag ${a.d<=0?"bad":a.d<=7?"warn":"ok"}">${a.next}</span>`,`<button class="btn sm" onclick="toast('${A("Work order created","تم إنشاء أمر عمل")}','PPM · ${a.id} · ${a.vendor}')">${A("Create WO","أمر عمل")}</button>`]))}</div>
+ <div class="panel"><h2>${A("PPM schedule 2026-27","جدول الصيانة الوقائية")}</h2>${tbl([A("Category","الفئة"),A("Frequency","التكرار"),A("Assets","الأصول"),A("Compliance","الالتزام")],[["HVAC","Monthly",68,"96%"],["Fire systems","Quarterly + annual",14,"100%"],["Generator","Quarterly",1,"100%"],["Elevators","Quarterly",2,"100%"],["Pumps","Quarterly",4,"88%"],["Electrical panels","Half-yearly",9,"100%"],["Playground","Quarterly",3,"67%"],["CCTV & doors","Half-yearly",42,"92%"]].map(r=>r.map((c,i)=>i===3?`<span class="tag ${parseInt(c)>=95?"ok":parseInt(c)>=85?"warn":"bad"}">${c}</span>`:c)))}</div></div>`}
+function vClean(){return `<div class="mini"><div><span class="small muted">${A("Today's score","درجة اليوم")}</span><b>94%</b></div><div><span class="small muted">${A("Areas checked","المناطق المفحوصة")}</span><b>47 / 50</b></div><div><span class="small muted">${A("Cleaners on site","العمال")}</span><b>40 / 42</b></div><div><span class="small muted">${A("Open cleaning issues","مشكلات مفتوحة")}</span><b>2</b></div></div>
+ <div class="grid g3">${S.clean.map(b=>`<div class="panel"><h2>${b.b}</h2>${tbl([A("Area","المنطقة"),A("Status","الحالة"),A("Checked","الفحص")],b.a.map(a=>[a[0],`<span class="tag ${pill(a[1])}">${a[1]==="ok"?A("Done","مكتمل"):A("In progress","قيد التنفيذ")}</span>`,a[2]]))}</div>`).join("")}
+ <div class="panel"><h2>${t("inspect")}</h2><div class="field"><label>${A("Area","المنطقة")}</label><select><option>Building A / Canteen</option><option>Building B / Toilets B1</option></select></div><div class="check">${A(["Floors mopped","Tables & desks wiped","Windows & glass","Waste removed","Sanitization done","Supplies restocked"],["تنظيف الأرضيات","مسح الطاولات","النوافذ والزجاج","إزالة النفايات","التعقيم","إعادة تعبئة المستلزمات"]).map(c=>`<label><input type="checkbox" checked> ${c}</label>`).join("")}</div><div class="row" style="margin-top:10px"><button class="btn sm">📸 ${t("photo")}</button><button class="btn p" onclick="S.clean[0].a[2][1]='ok';S.clean[0].a[2][2]='09:20';S.inspections.unshift({area:'Building A / Canteen',by:'Supervisor Anita',on:'3 Sep 09:20',score:'6/6'});toast('${t("inspOk")}','Building A / Canteen · 94% → 96%');render()">${t("submitInsp")}</button></div></div></div>
+ <div class="panel" style="margin-top:14px"><h2>${A("Inspection log","سجل التفتيش")}</h2>${tbl([A("Area","المنطقة"),A("Supervisor","المشرف"),A("Time","الوقت"),A("Score","الدرجة")],S.inspections.map(i=>[i.area,i.by,i.on,`<span class="tag ok">${i.score}</span>`]))}<p class="small muted">${A("Timestamped, photo-backed proof of service — instead of trusting the contractor's report.","دليل خدمة مؤرخ ومدعوم بالصور بدل الاعتماد على تقرير المقاول.")}</p></div>`}
+function vPest(){return `<div class="panel"><h2>${t("pest")} <button class="btn sm p" onclick="toast('${A("Treatment logged","تم تسجيل المعالجة")}','Store rooms · 3 Sep · Al-Waha')">+ ${A("Log treatment","تسجيل معالجة")}</button></h2>${tbl([t("location"),A("Last treatment","آخر معالجة"),A("Product used","المنتج"),A("Technician","الفني"),A("Inspection result","نتيجة الفحص"),t("nextTreat")],S.pest.map(p=>[`<b>${p.loc}</b>`,p.last,p.prod,p.tech,p.res,`<span class="tag ${p.next.startsWith("5 ")?"bad":p.next.startsWith("10 ")?"warn":"ok"}">${p.next}</span>`]))}
+ <p class="small muted" style="margin-top:8px">🔔 ${A("Automatic reminder to the facilities manager 7 days before each treatment. MSDS sheets attached per product.","تذكير تلقائي قبل ٧ أيام من كل معالجة. نشرات السلامة مرفقة لكل منتج.")}</p></div>`}
+function vContractors(){return `<div class="panel">${tbl([A("Contractor","المقاول"),A("Service","الخدمة"),A("Contract period","مدة العقد"),A("Value","القيمة"),A("Contact","جهة الاتصال"),"SLA",A("Rating","التقييم")],S.contractors.map(c=>[`<b>${c.n}</b>`,c.svc,c.contract,c.value,c.contact,c.sla,`<span class="tag ${parseFloat(c.rating)>=4.5?"ok":"warn"}">★ ${c.rating}</span>`]))}<p class="small muted" style="margin-top:8px">${A("Ratings are computed from SLA compliance and inspection scores.","تُحسب التقييمات من الالتزام بـ SLA ودرجات التفتيش.")}</p></div>`}
 
-setLang("en");
+/* ================= GUIDE ================= */
+function showGuide(){modalOpen(`<h2>${t("guide")} — School360 Qatar</h2><p class="small muted">${t("thisIsDemo")}</p>
+ <div class="kv" style="margin-top:10px"><span>1</span><span>${A("Use the tabs at the top right to switch between <b>Administration, Parent, Teacher</b> and <b>Facilities</b>.","استخدم التبويبات أعلى اليسار للتبديل بين الإدارة وولي الأمر والمعلم والمرافق.")}</span>
+ <span>2</span><span>${A("Use the side menu to open every module in that role.","استخدم القائمة الجانبية لفتح كل وحدة.")}</span>
+ <span>3</span><span>${A("Switch to <b>العربية</b> to see the full right-to-left interface.","بدّل إلى العربية لرؤية الواجهة من اليمين إلى اليسار.")}</span>
+ <span>4</span><span>${A("Try the cross-role flows: assign homework as Teacher → see it in Parent; send an Emergency alert as Admin → banner appears everywhere; Pay now as Parent → fee updates in Admin.","جرّب التدفقات المتقاطعة بين الأدوار.")}</span>
+ <span>5</span><span>${A("Press <b>Reset demo</b> to return to the starting data.","اضغط إعادة ضبط للعودة إلى البيانات الأولية.")}</span></div>
+ <h3 style="margin:14px 0 6px">${A("Modules in this demo","الوحدات في هذا العرض")}</h3><p class="small">Admin: dashboard, students, parents, teachers, transport, announcements, calendar, fees, documents, reports, settings, emergency alert · Parent: home, attendance, homework, exams &amp; results, calendar, announcements, fees &amp; receipts, bus, messages, documents, report issue, notifications, AI assistant · Teacher: classes, timetable, attendance, homework, study material, marks, announcements, messages · Facilities: work orders, assets, preventive maintenance, cleaning, pest control, contractors.</p>`,true)}
+setLang("en");showGuide();
 </script>
 </body>
 </html>
